@@ -89,7 +89,7 @@
             border-radius: 24px;
             border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.1);
-            overflow: hidden;
+            overflow: visible;
         }
 
         .header {
@@ -172,16 +172,16 @@
 
         .topic-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
             margin-bottom: 25px;
         }
 
         .topic-btn {
             background: rgba(30, 30, 45, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            padding: 20px 12px;
+            border-radius: 14px;
+            padding: 16px 10px;
             cursor: pointer;
             text-align: center;
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -293,7 +293,8 @@
             background-size: 20px 20px;
             background-position: center;
             position: relative;
-            overflow: hidden;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .viz-area::after {
@@ -853,6 +854,282 @@
         input::placeholder {
             color: rgba(255, 255, 255, 0.2);
         }
+
+        /* ===== Mobile Responsiveness ===== */
+
+        /* Allow viz content to scroll horizontally instead of being clipped */
+        #app {
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        .viz-area {
+            overflow: auto;
+        }
+
+        .viz-area::after {
+            pointer-events: none;
+        }
+
+        /* Ensure SVGs scale to fit container */
+        .tree-svg, svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* DP tables and arrays should scroll when too wide */
+        .dp-table {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+
+        .arr-box, .linked-viz, .queue-viz {
+            overflow-x: auto;
+            max-width: 100%;
+            padding-bottom: 8px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px 6px;
+            }
+
+            #app {
+                border-radius: 16px;
+            }
+
+            .header {
+                padding: 20px 16px;
+            }
+
+            .header h1 {
+                font-size: 26px;
+            }
+
+            .header p {
+                font-size: 12px;
+            }
+
+            .tabs {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .tab {
+                padding: 14px 8px;
+                font-size: 10px;
+                letter-spacing: 0.05em;
+                min-width: 0;
+                flex: 0 0 auto;
+            }
+
+            .content {
+                padding: 16px 12px;
+            }
+
+            .topic-grid {
+                grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+                gap: 8px;
+            }
+
+            .topic-btn {
+                padding: 12px 8px;
+                border-radius: 12px;
+            }
+
+            .topic-btn .icon {
+                font-size: 24px;
+                margin-bottom: 8px;
+            }
+
+            .topic-btn .name {
+                font-size: 12px;
+            }
+
+            .topic-btn .complexity {
+                font-size: 9px;
+                padding: 3px 6px;
+            }
+
+            .demo-area {
+                padding: 16px 12px;
+                border-radius: 14px;
+            }
+
+            .demo-title {
+                font-size: 18px;
+            }
+
+            .demo-desc {
+                font-size: 13px;
+                max-width: 100%;
+            }
+
+            .viz-area {
+                padding: 16px 10px;
+                min-height: 150px;
+                border-radius: 12px;
+            }
+
+            .controls {
+                gap: 8px;
+                padding: 12px 10px;
+                border-radius: 12px;
+                flex-wrap: wrap;
+            }
+
+            .btn {
+                padding: 10px 14px;
+                font-size: 11px;
+                border-radius: 8px;
+                letter-spacing: 0.5px;
+            }
+
+            .speed-row {
+                margin-left: 0;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .log {
+                font-size: 12px;
+                padding: 12px 14px;
+            }
+
+            /* Sorting bars */
+            .bar-viz {
+                height: 140px;
+                gap: 4px;
+                padding: 10px 6px;
+            }
+
+            .bar {
+                min-width: 28px;
+                font-size: 10px;
+            }
+
+            /* Array cells */
+            .arr-cell {
+                width: 40px;
+                height: 40px;
+                font-size: 14px;
+                border-radius: 8px;
+            }
+
+            /* DP cells */
+            .dp-cell {
+                width: 36px;
+                height: 36px;
+                font-size: 12px;
+                border-radius: 8px;
+            }
+
+            .dp-table {
+                padding: 12px;
+            }
+
+            /* Linked list nodes */
+            .ln-box {
+                padding: 10px 14px;
+                font-size: 14px;
+                border-radius: 8px;
+            }
+
+            .ln-arrow {
+                margin: 0 6px;
+                font-size: 16px;
+            }
+
+            /* Graph canvas */
+            #graph-canvas {
+                width: 100% !important;
+                max-width: 260px;
+                margin: 0 auto;
+            }
+
+            /* Hash table */
+            .hash-table {
+                max-width: 100%;
+            }
+
+            .hash-row {
+                gap: 8px;
+                font-size: 12px;
+            }
+
+            /* Stack items */
+            .stack-item {
+                padding: 10px;
+                font-size: 13px;
+            }
+
+            /* Info badges */
+            .info-badge {
+                font-size: 10px;
+                padding: 4px 8px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .tab {
+                font-size: 9px;
+                padding: 12px 6px;
+            }
+
+            .topic-grid {
+                grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+                gap: 6px;
+            }
+
+            .topic-btn .icon {
+                font-size: 20px;
+                margin-bottom: 6px;
+            }
+
+            .topic-btn .name {
+                font-size: 11px;
+            }
+
+            .demo-title {
+                font-size: 16px;
+            }
+
+            .arr-cell {
+                width: 34px;
+                height: 34px;
+                font-size: 12px;
+            }
+
+            .dp-cell {
+                width: 30px;
+                height: 30px;
+                font-size: 11px;
+            }
+
+            .bar {
+                min-width: 22px;
+                font-size: 9px;
+            }
+
+            .bar-viz {
+                height: 120px;
+                gap: 3px;
+            }
+
+            .ln-box {
+                padding: 8px 10px;
+                font-size: 12px;
+            }
+
+            .ln-arrow {
+                margin: 0 4px;
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 
@@ -872,6 +1149,7 @@
             <div class="tab" onclick="switchTab('trees')">Trees</div>
             <div class="tab" onclick="switchTab('graphs')">Graphs</div>
             <div class="tab" onclick="switchTab('dp')">Dynamic Prog.</div>
+            <div class="tab" onclick="switchTab('patterns')">Patterns</div>
         </div>
 
         <div class="content" id="content"></div>
@@ -884,17 +1162,17 @@
 
         function switchTab(t) {
             document.querySelectorAll('.tab').forEach((el, i) => {
-                const tabs = ['sorting', 'searching', 'ds', 'trees', 'graphs', 'dp'];
+                const tabs = ['sorting', 'searching', 'ds', 'trees', 'graphs', 'dp', 'patterns'];
                 el.classList.toggle('active', tabs[i] === t);
             });
             animating = false;
-            const fns = { sorting: renderSorting, searching: renderSearching, ds: renderDS, trees: renderTrees, graphs: renderGraphs, dp: renderDP };
-            fns[t]();
+            const fns = { sorting: renderSorting, searching: renderSearching, ds: renderDS, trees: renderTrees, graphs: renderGraphs, dp: renderDP, patterns: renderPatterns };
+            if (fns[t]) fns[t]();
         }
 
         /* UI Helper: Animate log to draw attention */
         function updateLogText(msg) {
-            const l = document.getElementById('sort-log') || document.getElementById('search-log') || document.getElementById('ds-log') || document.getElementById('tree-log') || document.getElementById('graph-log') || document.getElementById('dp-log');
+            const l = document.getElementById('sort-log') || document.getElementById('search-log') || document.getElementById('ds-log') || document.getElementById('tree-log') || document.getElementById('graph-log') || document.getElementById('dp-log') || document.getElementById('pattern-log');
             if (l) {
                 l.textContent = msg;
                 l.classList.remove('flash');
@@ -911,6 +1189,7 @@
             { id: 'merge', name: 'Merge Sort', icon: '🔀', time: 'O(n log n)', space: 'O(n)' },
             { id: 'quick', name: 'Quick Sort', icon: '⚡', time: 'O(n log n)', space: 'O(log n)' },
             { id: 'heap', name: 'Heap Sort', icon: '🏔️', time: 'O(n log n)', space: 'O(1)' },
+            { id: 'counting', name: 'Counting Sort', icon: '🔢', time: 'O(n+k)', space: 'O(k)' },
         ];
         let sortAlgo = 'bubble';
         let sortArr = [5, 3, 8, 1, 9, 2, 7, 4, 6];
@@ -955,7 +1234,8 @@
                 insertion: 'Builds the sorted portion one element at a time by inserting each into its proper place.',
                 merge: 'Divides the array in half recursively, then gracefully merges the sorted halves back together.',
                 quick: 'Picks a pivot, partitions elements around it, and recursively sorts each side. Highly efficient.',
-                heap: 'Builds a max-heap, then extracts the maximum elements in sorted order.'
+                heap: 'Builds a max-heap, then extracts the maximum elements in sorted order.',
+                counting: 'Counts occurrences of each value, then reconstructs the sorted array. Non-comparison based.'
             };
             document.getElementById('sort-desc').textContent = descs[sortAlgo];
             updateLogText(`Time: ${a.time} | Space: ${a.space} — Ready to visualize.`);
@@ -1083,6 +1363,24 @@
                     await heapify(arr, i, 0);
                 }
                 drawSortBars(arr, [], [], arr.map((_, i) => i));
+            } else if (sortAlgo === 'counting') {
+                const max = Math.max(...arr);
+                const count = Array(max + 1).fill(0);
+                for (let i = 0; i < arr.length && animating; i++) {
+                    count[arr[i]]++;
+                    updateLogText(`Counting: value ${arr[i]} → count[${arr[i]}] = ${count[arr[i]]}`);
+                    drawSortBars(arr, [i], [], []); await DELAY(speedMs); setSteps(++sortSteps);
+                }
+                let idx = 0;
+                for (let v = 0; v <= max && animating; v++) {
+                    for (let c = 0; c < count[v] && animating; c++) {
+                        arr[idx] = v;
+                        updateLogText(`Placing value ${v} at index ${idx}`);
+                        drawSortBars(arr, [idx], [], Array.from({length: idx}, (_, i) => i));
+                        await DELAY(speedMs); setSteps(++sortSteps); idx++;
+                    }
+                }
+                drawSortBars(arr, [], [], arr.map((_, i) => i));
             }
 
             if (animating) { updateLogText('Process Complete. Array sorted successfully in ' + sortSteps + ' steps.'); animating = false; }
@@ -1096,7 +1394,7 @@
 
         function renderSearching() {
             document.getElementById('content').innerHTML = `
-    <div class="topic-grid" style="grid-template-columns:repeat(2,1fr);max-width:400px;">
+    <div class="topic-grid">
       <div class="topic-btn active" id="btn-linear" onclick="setSearch('linear')"><div class="icon">🔍</div><div class="name">Linear Search</div><div class="complexity">O(n)</div></div>
       <div class="topic-btn" id="btn-binary" onclick="setSearch('binary')"><div class="icon">🎯</div><div class="name">Binary Search</div><div class="complexity">O(log n)</div></div>
     </div>
@@ -1184,10 +1482,12 @@
       <div class="topic-btn" onclick="setDS('queue')"><div class="icon">🚶</div><div class="name">Queue</div><div class="complexity">Enq/Deq: O(1)</div></div>
       <div class="topic-btn" onclick="setDS('linked')"><div class="icon">🔗</div><div class="name">Linked List</div><div class="complexity">Insert: O(1)</div></div>
       <div class="topic-btn" onclick="setDS('hash')"><div class="icon">#️⃣</div><div class="name">Hash Table</div><div class="complexity">Lookup: O(1) avg</div></div>
+      <div class="topic-btn" onclick="setDS('minheap')"><div class="icon">🏔️</div><div class="name">Min-Heap</div><div class="complexity">Extract: O(log n)</div></div>
+      <div class="topic-btn" onclick="setDS('trie')"><div class="icon">🌲</div><div class="name">Trie</div><div class="complexity">Search: O(m)</div></div>
     </div>
     <div class="demo-area" id="ds-demo"></div>`;
             document.querySelectorAll('.topic-btn').forEach((b, i) => {
-                const types = ['array', 'stack', 'queue', 'linked', 'hash'];
+                const types = ['array', 'stack', 'queue', 'linked', 'hash', 'minheap', 'trie'];
                 b.onclick = () => { document.querySelectorAll('.topic-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); setDS(types[i]); };
             });
             setDS('array');
@@ -1242,6 +1542,25 @@
       </div>
       <div class="log" id="ds-log">Hash Function: ∑ (char codes) % table capacity.</div>`;
                 drawHashTable({});
+            } else if (type === 'minheap') {
+                heapArr = [2, 5, 8, 10, 14];
+                demo.innerHTML = `<div class="demo-title">Min-Heap (Priority Queue)</div><div class="demo-desc">Parent is always smaller than children. Smallest element is always at the root.</div>
+      <div class="viz-area" id="ds-viz" style="justify-content:center;"></div>
+      <div class="controls"><button class="btn primary" onclick="heapInsertRandom()">Insert Random</button><button class="btn" onclick="heapExtractMin()">Extract Min</button></div>
+      <div class="log" id="ds-log">Min-Heap ready. Insert or extract to see heapify in action.</div>`;
+                drawHeapTree(heapArr, []);
+            } else if (type === 'trie') {
+                trieRoot = {children:{}, isEnd:false};
+                ['cat','car','cap','can'].forEach(w => trieInsertWord(trieRoot, w));
+                demo.innerHTML = `<div class="demo-title">Trie (Prefix Tree)</div><div class="demo-desc">Each node represents one character. Words share common prefixes to save space.</div>
+      <div class="viz-area" id="ds-viz" style="justify-content:center;"></div>
+      <div class="controls">
+        <input id="trie-word" placeholder="Type word..." style="width:120px;padding:8px 12px;border-radius:8px;">
+        <button class="btn primary" onclick="trieInsertUI()">Insert Word</button>
+        <button class="btn" onclick="trieSearchUI()">Search Word</button>
+      </div>
+      <div class="log" id="ds-log">Trie loaded with: cat, car, cap, can. Try inserting or searching.</div>`;
+                drawTrieViz(trieRoot, []);
             }
         }
 
@@ -1330,15 +1649,118 @@
         function llAppend() { linkedList.push(llCounter--); drawLinked(linkedList); updateLogText(`Pointer attached new TAIL node holding ${llCounter + 1}.`); }
         function llRemoveHead() { if (!linkedList.length) return; const v = linkedList.shift(); drawLinked(linkedList); updateLogText(`Dereferenced HEAD node (${v}). Next node promoted to HEAD.`); }
 
+        /* ===== Min-Heap ===== */
+        let heapArr = [2, 5, 8, 10, 14];
+        function drawHeapTree(arr, highlights) {
+            const viz = document.getElementById('ds-viz'); if (!viz) return;
+            viz.innerHTML = '';
+            if (!arr.length) { viz.innerHTML = '<span style="color:var(--muted);font-size:13px;font-family:var(--font-mono);">(heap is empty)</span>'; return; }
+            const W = 380, H = 200;
+            let svg = `<svg class="tree-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:380px;">
+             <defs><filter id="hglow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feComposite in="SourceGraphic" in2="blur" operator="over"/></filter></defs>`;
+            function getPos(idx) {
+                const depth = Math.floor(Math.log2(idx + 1));
+                const maxDepth = Math.floor(Math.log2(arr.length));
+                const posInLevel = idx - (Math.pow(2, depth) - 1);
+                const totalInLevel = Math.pow(2, depth);
+                const x = W / (totalInLevel + 1) * (posInLevel + 1);
+                const y = 30 + depth * 55;
+                return { x, y };
+            }
+            for (let i = 0; i < arr.length; i++) {
+                const parent = Math.floor((i - 1) / 2);
+                if (i > 0) {
+                    const pp = getPos(parent), cp = getPos(i);
+                    svg += `<line x1="${pp.x}" y1="${pp.y}" x2="${cp.x}" y2="${cp.y}" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>`;
+                }
+            }
+            for (let i = 0; i < arr.length; i++) {
+                const p = getPos(i);
+                const isHL = highlights.includes(i);
+                const fill = isHL ? 'rgba(124, 106, 255, 0.2)' : '#1e1e2d';
+                const stroke = isHL ? '#9d8cff' : 'rgba(124, 106, 255, 0.5)';
+                svg += `<circle cx="${p.x}" cy="${p.y}" r="18" fill="${fill}" stroke="${stroke}" stroke-width="2.5" ${isHL ? 'filter="url(#hglow)"' : ''}/>`;
+                svg += `<text x="${p.x}" y="${p.y}" text-anchor="middle" dominant-baseline="central" fill="${isHL ? '#fff' : '#e8e8f0'}" font-size="13" font-family="JetBrains Mono,monospace" font-weight="600">${arr[i]}</text>`;
+            }
+            svg += '</svg>';
+            viz.innerHTML = svg;
+        }
+        function heapBubbleUp(arr, i) { while (i > 0) { const p = Math.floor((i - 1) / 2); if (arr[p] > arr[i]) { [arr[p], arr[i]] = [arr[i], arr[p]]; i = p; } else break; } }
+        function heapBubbleDown(arr, i) { const n = arr.length; while (true) { let s = i, l = 2*i+1, r = 2*i+2; if (l < n && arr[l] < arr[s]) s = l; if (r < n && arr[r] < arr[s]) s = r; if (s === i) break; [arr[i], arr[s]] = [arr[s], arr[i]]; i = s; } }
+        function heapInsertRandom() {
+            const v = Math.floor(Math.random() * 30) + 1;
+            heapArr.push(v);
+            heapBubbleUp(heapArr, heapArr.length - 1);
+            drawHeapTree(heapArr, [heapArr.indexOf(v)]);
+            updateLogText(`Inserted ${v}. Bubbled up to maintain min-heap property. Root = ${heapArr[0]}`);
+        }
+        function heapExtractMin() {
+            if (!heapArr.length) return;
+            const min = heapArr[0];
+            heapArr[0] = heapArr[heapArr.length - 1];
+            heapArr.pop();
+            heapBubbleDown(heapArr, 0);
+            drawHeapTree(heapArr, [0]);
+            updateLogText(`Extracted min = ${min}. Heapified down. New root = ${heapArr[0] ?? 'empty'}`);
+        }
+
+        /* ===== Trie ===== */
+        let trieRoot = {children:{}, isEnd:false};
+        function trieInsertWord(root, word) { let node = root; for (const ch of word) { if (!node.children[ch]) node.children[ch] = {children:{}, isEnd:false}; node = node.children[ch]; } node.isEnd = true; }
+        function trieSearchWord(root, word) { let node = root; const path = []; for (const ch of word) { path.push(ch); if (!node.children[ch]) return { found: false, path }; node = node.children[ch]; } return { found: node.isEnd, path }; }
+        function drawTrieViz(root, highlightPath) {
+            const viz = document.getElementById('ds-viz'); if (!viz) return;
+            viz.innerHTML = '';
+            const W = 400, H = 220;
+            let svg = `<svg class="tree-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:400px;">
+             <defs><filter id="tglow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feComposite in="SourceGraphic" in2="blur" operator="over"/></filter></defs>`;
+            function drawTrieNode(node, x, y, spread, depth, pathSoFar) {
+                const keys = Object.keys(node.children).sort();
+                const startX = x - (keys.length - 1) * spread / 2;
+                keys.forEach((ch, i) => {
+                    const cx = startX + i * spread;
+                    const cy = y + 55;
+                    const currentPath = pathSoFar + ch;
+                    const isHL = highlightPath.length > 0 && currentPath === highlightPath.slice(0, currentPath.length).join('');
+                    svg += `<line x1="${x}" y1="${y}" x2="${cx}" y2="${cy}" stroke="${isHL ? 'var(--accent3)' : 'rgba(255,255,255,0.15)'}" stroke-width="2"/>`;
+                    const fill = isHL ? 'rgba(79, 255, 229, 0.2)' : node.children[ch].isEnd ? 'rgba(255, 117, 160, 0.15)' : '#1e1e2d';
+                    const stroke = isHL ? '#4fffe5' : node.children[ch].isEnd ? '#ff75a0' : 'rgba(124, 106, 255, 0.5)';
+                    svg += `<circle cx="${cx}" cy="${cy}" r="16" fill="${fill}" stroke="${stroke}" stroke-width="2" ${isHL ? 'filter="url(#tglow)"' : ''}/>`;
+                    svg += `<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="13" font-family="JetBrains Mono,monospace" font-weight="700">${ch}</text>`;
+                    drawTrieNode(node.children[ch], cx, cy, spread / Math.max(keys.length, 1.5), depth + 1, currentPath);
+                });
+            }
+            svg += `<circle cx="${W/2}" cy="20" r="12" fill="#1e1e2d" stroke="rgba(124,106,255,0.5)" stroke-width="2"/>`;
+            svg += `<text x="${W/2}" y="20" text-anchor="middle" dominant-baseline="central" fill="var(--muted)" font-size="10" font-family="JetBrains Mono,monospace" font-weight="800">*</text>`;
+            drawTrieNode(root, W/2, 20, 80, 0, '');
+            svg += '</svg>';
+            viz.innerHTML = svg;
+        }
+        function trieInsertUI() {
+            const w = document.getElementById('trie-word').value.trim().toLowerCase();
+            if (!w) return;
+            trieInsertWord(trieRoot, w);
+            drawTrieViz(trieRoot, []);
+            updateLogText(`Inserted "${w}" into the Trie. Characters shared with existing words save space.`);
+        }
+        function trieSearchUI() {
+            const w = document.getElementById('trie-word').value.trim().toLowerCase();
+            if (!w) return;
+            const result = trieSearchWord(trieRoot, w);
+            drawTrieViz(trieRoot, result.path);
+            updateLogText(result.found ? `✓ "${w}" exists in the Trie! Path: root → ${result.path.join(' → ')}` : `✗ "${w}" not found. Searched path: root → ${result.path.join(' → ')}`);
+        }
+
         let bst = { val: 15, left: { val: 8, left: { val: 3, left: null, right: null }, right: { val: 12, left: null, right: null } }, right: { val: 22, left: { val: 18, left: null, right: null }, right: { val: 28, left: null, right: null } } };
         let treeMode = 'bst';
 
         function renderTrees() {
             document.getElementById('content').innerHTML = `
-    <div class="topic-grid" style="grid-template-columns:repeat(3,1fr);max-width:440px;">
+    <div class="topic-grid">
       <div class="topic-btn active" id="btn-bst" onclick="setTree('bst')"><div class="icon">🌲</div><div class="name">BST Structure</div><div class="complexity">O(log n) avg</div></div>
       <div class="topic-btn" id="btn-bfs" onclick="setTree('bfs')"><div class="icon">🌊</div><div class="name">Breadth-First</div><div class="complexity">O(V+E)</div></div>
       <div class="topic-btn" id="btn-dfs" onclick="setTree('dfs')"><div class="icon">🔱</div><div class="name">Depth-First</div><div class="complexity">O(V+E)</div></div>
+      <div class="topic-btn" id="btn-avl" onclick="setTree('avl')"><div class="icon">⚖️</div><div class="name">AVL Tree</div><div class="complexity">O(log n)</div></div>
     </div>
     <div class="demo-area">
       <div class="demo-title" id="tree-title">Binary Search Tree</div>
@@ -1354,17 +1776,19 @@
       </div>
       <div class="log" id="tree-log">BST initialized. Waiting for operation...</div>
     </div>`;
-            drawTree(bst, [], []);
+            if (treeMode === 'avl') drawTree(avlRoot || {val:'—', left:null, right:null}, [], []);
+            else drawTree(bst, [], []);
         }
 
         function setTree(mode) {
             treeMode = mode;
             animating = false;
-            ['bst', 'bfs', 'dfs'].forEach(m => { const b = document.getElementById('btn-' + m); if (b) b.classList.toggle('active', m === mode); });
+            ['bst', 'bfs', 'dfs', 'avl'].forEach(m => { const b = document.getElementById('btn-' + m); if (b) b.classList.toggle('active', m === mode); });
             const configs = {
                 bst: { title: 'Binary Search Tree', desc: 'Left child < parent < right child. Extremely efficient for hierarchical data lookups.', btn1: 'Insert Node', btn2: 'Search Path' },
                 bfs: { title: 'BFS Traversal', desc: 'Explores horizontal depth level by level utilizing a Queue buffer.', btn1: '▶ Run BFS', btn2: 'Reset Tree' },
                 dfs: { title: 'DFS Traversal', desc: 'Dives vertically deep down a branch before backtracking. Typically implemented via recursion or Stack.', btn1: '▶ Run DFS', btn2: 'Reset Tree' },
+                avl: { title: 'AVL Tree (Self-Balancing)', desc: 'Automatically rebalances after each insertion using rotations to maintain O(log n) height.', btn1: 'Insert Node', btn2: 'Reset AVL' },
             };
             const c = configs[mode];
             document.getElementById('tree-title').textContent = c.title;
@@ -1378,7 +1802,7 @@
         function drawTree(root, highlighted = [], found = []) {
             const wrap = document.getElementById('tree-svg-wrap'); if (!wrap) return;
             const W = 420, H = 220;
-            let svg = `<svg class="tree-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width: 420px;">
+            let svg = `<svg class="tree-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-width: 420px;">
              <defs>
                <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
                  <feGaussianBlur stdDeviation="3" result="blur" />
@@ -1417,6 +1841,13 @@
                 bst = insertBST(bst, v);
                 drawTree(bst, [v], []);
                 updateLogText(`Allocated new memory block. Inserted leaf ${v} into BST architecture.`);
+            } else if (treeMode === 'avl') {
+                const v = +document.getElementById('tree-val').value;
+                if (!v) return;
+                avlLastRotation = '';
+                avlRoot = avlInsert(avlRoot, v);
+                drawTree(avlRoot, [v], []);
+                updateLogText(`AVL: Inserted ${v}. ${avlLastRotation ? 'Performed ' + avlLastRotation + '.' : 'No rotation needed.'} Height = ${avlHeight(avlRoot)}`);
             } else {
                 if (animating) return;
                 animating = true;
@@ -1453,6 +1884,28 @@
             } else { animating = false; drawTree(bst, [], []); updateLogText('Environment parameters reset to original state.'); }
         }
 
+        /* ===== AVL Tree ===== */
+        let avlRoot = null;
+        function avlHeight(n) { return n ? n.h : 0; }
+        function avlBal(n) { return n ? avlHeight(n.left) - avlHeight(n.right) : 0; }
+        function avlUpdateH(n) { if (n) n.h = 1 + Math.max(avlHeight(n.left), avlHeight(n.right)); }
+        function avlRotR(y) { let x = y.left; y.left = x.right; x.right = y; avlUpdateH(y); avlUpdateH(x); return x; }
+        function avlRotL(x) { let y = x.right; x.right = y.left; y.left = x; avlUpdateH(x); avlUpdateH(y); return y; }
+        let avlLastRotation = '';
+        function avlInsert(node, val) {
+            if (!node) return { val, left: null, right: null, h: 1 };
+            if (val < node.val) node.left = avlInsert(node.left, val);
+            else if (val > node.val) node.right = avlInsert(node.right, val);
+            else return node;
+            avlUpdateH(node);
+            const b = avlBal(node);
+            if (b > 1 && val < node.left.val) { avlLastRotation = 'Right Rotation (LL case)'; return avlRotR(node); }
+            if (b < -1 && val > node.right.val) { avlLastRotation = 'Left Rotation (RR case)'; return avlRotL(node); }
+            if (b > 1 && val > node.left.val) { avlLastRotation = 'Left-Right Rotation (LR case)'; node.left = avlRotL(node.left); return avlRotR(node); }
+            if (b < -1 && val < node.right.val) { avlLastRotation = 'Right-Left Rotation (RL case)'; node.right = avlRotR(node.right); return avlRotL(node); }
+            return node;
+        }
+
         const GNODES = ['A', 'B', 'C', 'D', 'E', 'F'];
         const GEDGES = [['A', 'B'], ['A', 'C'], ['B', 'D'], ['B', 'E'], ['C', 'F'], ['D', 'E'], ['E', 'F']];
         const GPOS = { A: [120, 40], B: [50, 110], C: [190, 110], D: [30, 190], E: [120, 190], F: [210, 190] };
@@ -1460,17 +1913,18 @@
 
         function renderGraphs() {
             document.getElementById('content').innerHTML = `
-    <div class="topic-grid" style="grid-template-columns:repeat(2,1fr);max-width:320px;">
+    <div class="topic-grid">
       <div class="topic-btn active" id="gbtn-bfs" onclick="setGraph('bfs')"><div class="icon">🌊</div><div class="name">BFS</div><div class="complexity">O(V+E)</div></div>
       <div class="topic-btn" id="gbtn-dfs" onclick="setGraph('dfs')"><div class="icon">🌀</div><div class="name">DFS</div><div class="complexity">O(V+E)</div></div>
       <div class="topic-btn" id="gbtn-dijkstra" onclick="setGraph('dijkstra')"><div class="icon">📍</div><div class="name">Dijkstra</div><div class="complexity">O(V²)</div></div>
       <div class="topic-btn" id="gbtn-topo" onclick="setGraph('topo')"><div class="icon">📐</div><div class="name">Topo Sort</div><div class="complexity">O(V+E)</div></div>
+      <div class="topic-btn" id="gbtn-kruskal" onclick="setGraph('kruskal')"><div class="icon">🌉</div><div class="name">Kruskal's MST</div><div class="complexity">O(E log E)</div></div>
     </div>
     <div class="demo-area">
       <div class="demo-title" id="graph-title">Graph Traversal (BFS)</div>
       <div class="demo-desc" id="graph-desc">Pings adjacent nodes radially outwards from a designated start point.</div>
       <div class="viz-area">
-        <div id="graph-canvas" style="width:260px;height:240px;position:relative;"></div>
+        <div id="graph-canvas" style="width:100%;max-width:260px;height:240px;position:relative;margin:0 auto;"></div>
       </div>
       <div class="controls">
         <button class="btn primary" onclick="runGraph()">▶ Execute Trace</button>
@@ -1484,9 +1938,9 @@
 
         function setGraph(a) {
             graphAlgo = a; animating = false;
-            ['bfs', 'dfs', 'dijkstra', 'topo'].forEach(m => { const b = document.getElementById('gbtn-' + m); if (b) b.classList.toggle('active', m === a); });
-            const descs = { bfs: 'Pings adjacent nodes radially outwards from a designated start point.', dfs: 'Navigates the topology edge deep into a chain before returning.', dijkstra: "Calculates the mathematical absolute shortest path vector spanning the network.", topo: 'Sequences node dependencies so all directed edges align forward strictly.' };
-            document.getElementById('graph-title').textContent = { bfs: 'Graph Traversal (BFS)', dfs: 'Graph Routing (DFS)', dijkstra: 'Dijkstra Pathfinding', topo: 'Topological Vector Sort' }[a];
+            ['bfs', 'dfs', 'dijkstra', 'topo', 'kruskal'].forEach(m => { const b = document.getElementById('gbtn-' + m); if (b) b.classList.toggle('active', m === a); });
+            const descs = { bfs: 'Pings adjacent nodes radially outwards from a designated start point.', dfs: 'Navigates the topology edge deep into a chain before returning.', dijkstra: "Calculates the mathematical absolute shortest path vector spanning the network.", topo: 'Sequences node dependencies so all directed edges align forward strictly.', kruskal: 'Builds a Minimum Spanning Tree by greedily picking the shortest available edge that creates no cycle.' };
+            document.getElementById('graph-title').textContent = { bfs: 'Graph Traversal (BFS)', dfs: 'Graph Routing (DFS)', dijkstra: 'Dijkstra Pathfinding', topo: 'Topological Vector Sort', kruskal: "Kruskal's MST" }[a];
             document.getElementById('graph-desc').textContent = descs[a];
             updateLogText('Algorithm deployed in memory. Awaiting trace command.');
             drawGraph([], []);
@@ -1495,7 +1949,7 @@
         function drawGraph(visited, current, path = []) {
             const canvas = document.getElementById('graph-canvas'); if (!canvas) return;
             const W = 260, H = 240;
-            let svg = `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+            let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:${W}px;overflow:visible">
              <defs>
                <filter id="gglow" x="-20%" y="-20%" width="140%" height="140%">
                  <feGaussianBlur stdDeviation="4" result="blur" />
@@ -1548,11 +2002,36 @@
                     for (const nb of ADJ[u]) { if (dist[u] + 1 < dist[nb]) { dist[nb] = dist[u] + 1; path.push([u, nb]); } }
                 }
                 updateLogText(`Optimal routing resolved. Vectors from root (A): ${GNODES.map(n => `[${n}]=${dist[n]}`).join(' | ')}`);
-            } else {
+            } else if (graphAlgo === 'topo') {
                 const order = [], seen = new Set();
                 async function dfs2(n) { if (seen.has(n) || !animating) return; seen.add(n); visited.push(n); drawGraph(visited, [n], path); updateLogText(`Evaluating dependencies for [${n}].`); await DELAY(speedMs); for (const nb of ADJ[n]) if (!seen.has(nb)) { path.push([n, nb]); await dfs2(nb); } order.unshift(n); }
                 for (const n of GNODES) await dfs2(n);
                 updateLogText(`Dependency mapping complete. Valid Topological sequence: ${order.join(' → ')}`);
+            } else if (graphAlgo === 'kruskal') {
+                const edges = GEDGES.map(([a,b]) => ({a, b, w: Math.floor(Math.random()*9)+1})).sort((x,y) => x.w - y.w);
+                const parent = {}; GNODES.forEach(n => parent[n] = n);
+                function find(x) { while (parent[x] !== x) x = parent[x]; return x; }
+                function union(a, b) { parent[find(a)] = find(b); }
+                let mstWeight = 0;
+                updateLogText(`Edges sorted by weight: ${edges.map(e => `${e.a}-${e.b}(${e.w})`).join(', ')}`);
+                await DELAY(speedMs);
+                for (const e of edges) {
+                    if (!animating) break;
+                    if (find(e.a) !== find(e.b)) {
+                        union(e.a, e.b);
+                        path.push([e.a, e.b]);
+                        visited.push(e.a); visited.push(e.b);
+                        mstWeight += e.w;
+                        drawGraph([...new Set(visited)], [e.a, e.b], path);
+                        updateLogText(`Added edge ${e.a}-${e.b} (weight ${e.w}) to MST. Total weight: ${mstWeight}`);
+                    } else {
+                        drawGraph([...new Set(visited)], [e.a, e.b], path);
+                        updateLogText(`Skipped edge ${e.a}-${e.b} (weight ${e.w}) — would create a cycle.`);
+                    }
+                    await DELAY(speedMs);
+                }
+                drawGraph(GNODES, [], path);
+                updateLogText(`Kruskal's MST complete. Total weight = ${mstWeight}. Edges: ${path.map(([a,b]) => a+'-'+b).join(', ')}`);
             }
             animating = false;
         }
@@ -1561,10 +2040,12 @@
         let dpAlgo = 'fib';
         function renderDP() {
             document.getElementById('content').innerHTML = `
-    <div class="topic-grid" style="grid-template-columns:repeat(3,1fr);max-width:440px;">
+    <div class="topic-grid">
       <div class="topic-btn active" id="dp-fib" onclick="setDP('fib')"><div class="icon">🐇</div><div class="name">Fibonacci Math</div><div class="complexity">Time: O(n)</div></div>
       <div class="topic-btn" id="dp-lis" onclick="setDP('lis')"><div class="icon">📈</div><div class="name">Longest Incr. Seq.</div><div class="complexity">Time: O(n²)</div></div>
       <div class="topic-btn" id="dp-knapsack" onclick="setDP('knapsack')"><div class="icon">🎒</div><div class="name">0/1 Knapsack Grid</div><div class="complexity">Time: O(nW)</div></div>
+      <div class="topic-btn" id="dp-lcs" onclick="setDP('lcs')"><div class="icon">🧩</div><div class="name">LCS</div><div class="complexity">Time: O(m×n)</div></div>
+      <div class="topic-btn" id="dp-stairs" onclick="setDP('stairs')"><div class="icon">🪜</div><div class="name">Climb Stairs</div><div class="complexity">Time: O(n)</div></div>
     </div>
     <div class="demo-area">
       <div class="demo-title" id="dp-title">Fibonacci sequence (Memoization)</div>
@@ -1582,16 +2063,18 @@
 
         function setDP(a) {
             dpAlgo = a; animating = false;
-            ['fib', 'lis', 'knapsack'].forEach(m => { const b = document.getElementById('dp-' + m); if (b) b.classList.toggle('active', m === a); });
-            const titles = { fib: 'Fibonacci sequence (Memoization)', lis: 'Longest Increasing Subsequence', knapsack: '0/1 Knapsack Matrix Optimization' };
-            const descs = { fib: 'Caches calculated subproblem results in a 1D array to eliminate redundant recursive branches.', lis: 'Progressively identifies and logs lengths of strictly increasing array combinations.', knapsack: 'Constructs an optimization matrix to maximize inventory value under weight constraints.' };
+            ['fib', 'lis', 'knapsack', 'lcs', 'stairs'].forEach(m => { const b = document.getElementById('dp-' + m); if (b) b.classList.toggle('active', m === a); });
+            const titles = { fib: 'Fibonacci sequence (Memoization)', lis: 'Longest Increasing Subsequence', knapsack: '0/1 Knapsack Matrix Optimization', lcs: 'Longest Common Subsequence', stairs: 'Climbing Stairs' };
+            const descs = { fib: 'Caches calculated subproblem results in a 1D array to eliminate redundant recursive branches.', lis: 'Progressively identifies and logs lengths of strictly increasing array combinations.', knapsack: 'Constructs an optimization matrix to maximize inventory value under weight constraints.', lcs: 'Compares two strings character by character, building a 2D matrix to find the longest shared subsequence.', stairs: 'Each step you can climb 1 or 2 stairs. Count distinct ways to reach the top — a classic Fibonacci pattern.' };
             document.getElementById('dp-title').textContent = titles[a];
             document.getElementById('dp-desc').textContent = descs[a];
             const viz = document.getElementById('dp-viz'); if (viz) viz.innerHTML = '';
             updateLogText('Grid architecture switched. Press compile trace.');
             if (a === 'fib') drawFibTable(Array(10).fill(null), -1);
             else if (a === 'lis') drawLISTable([4, 2, 8, 5, 1, 9, 3, 6], Array(8).fill(1), -1);
-            else drawKnapsackGrid(Array(4).fill(null).map(() => Array(7).fill(0)), -1, -1);
+            else if (a === 'knapsack') drawKnapsackGrid(Array(4).fill(null).map(() => Array(7).fill(0)), -1, -1);
+            else if (a === 'lcs') drawLCSGrid('ABCDE', 'ACE', Array(6).fill(null).map(() => Array(4).fill(0)), -1, -1);
+            else if (a === 'stairs') drawStairsTable(Array(8).fill(null), -1);
         }
 
         function drawFibTable(dp, cur) {
@@ -1631,6 +2114,39 @@
             viz.appendChild(table);
         }
 
+        function drawLCSGrid(s1, s2, grid, curI, curJ) {
+            const viz = document.getElementById('dp-viz'); if (!viz) return;
+            viz.innerHTML = `<div class="section-label" style="text-align:center;">Comparing "${s1}" vs "${s2}"</div>`;
+            const cols = s2.length + 2;
+            const table = document.createElement('div'); table.className = 'dp-table'; table.style.gridTemplateColumns = `repeat(${cols},40px)`;
+            // Header row
+            const corner = document.createElement('div'); corner.className = 'dp-cell header'; corner.textContent = ''; table.appendChild(corner);
+            const emptyH = document.createElement('div'); emptyH.className = 'dp-cell header'; emptyH.textContent = '-'; table.appendChild(emptyH);
+            for (let j = 0; j < s2.length; j++) { const c = document.createElement('div'); c.className = 'dp-cell header'; c.textContent = s2[j]; table.appendChild(c); }
+            // Grid rows
+            for (let i = 0; i <= s1.length; i++) {
+                const lbl = document.createElement('div'); lbl.className = 'dp-cell header'; lbl.textContent = i === 0 ? '-' : s1[i-1]; table.appendChild(lbl);
+                for (let j = 0; j <= s2.length; j++) {
+                    const c = document.createElement('div'); c.className = 'dp-cell' + (i === curI && j === curJ ? ' current' : grid[i][j] > 0 ? ' filled' : '');
+                    c.textContent = grid[i][j]; table.appendChild(c);
+                }
+            }
+            viz.appendChild(table);
+        }
+
+        function drawStairsTable(dp, cur) {
+            const viz = document.getElementById('dp-viz'); if (!viz) return;
+            viz.innerHTML = '<div class="section-label" style="text-align:left; margin-left: 20px;">Logic: ways[i] = ways[i-1] + ways[i-2]</div>';
+            const row = document.createElement('div'); row.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;justify-content:center;';
+            dp.forEach((v, i) => {
+                const cell = document.createElement('div'); cell.className = 'dp-cell' + (i === cur ? ' current' : v !== null ? ' filled' : '');
+                cell.style.flexDirection = 'column'; cell.style.height = '54px'; cell.style.width = '54px';
+                cell.innerHTML = `<span style="font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:2px;">\ud83e\ude9c${i}</span><span style="color:${v !== null ? '#fff' : 'inherit'}">${v ?? '-'}</span>`;
+                row.appendChild(cell);
+            });
+            viz.appendChild(row);
+        }
+
         async function runDP() {
             if (animating) return; animating = true;
             if (dpAlgo === 'fib') {
@@ -1642,17 +2158,418 @@
                 const arr = [4, 2, 8, 5, 1, 9, 3, 6], dp = Array(8).fill(1);
                 for (let i = 1; i < arr.length && animating; i++) { for (let j = 0; j < i && animating; j++) { updateLogText(`Validating condition: arr[${j}]=${arr[j]} < arr[${i}]=${arr[i]} ? → ${arr[j] < arr[i] ? 'PASS (increment sequence)' : 'FAIL'}`); drawLISTable(arr, dp, i); await DELAY(speedMs / 1.5); if (arr[j] < arr[i]) dp[i] = Math.max(dp[i], dp[j] + 1); } }
                 drawLISTable(arr, dp, -1); updateLogText(`Scanning sequence complete. Maximum scalar chain discovered = ${Math.max(...dp)}.`);
-            } else {
+            } else if (dpAlgo === 'knapsack') {
                 const W = [0, 2, 3, 4], V = [0, 3, 4, 5], cap = 6;
                 const grid = Array(4).fill(null).map(() => Array(7).fill(0));
                 for (let i = 1; i <= 3 && animating; i++) { for (let w = 0; w <= cap && animating; w++) { if (W[i] <= w) grid[i][w] = Math.max(grid[i - 1][w], V[i] + grid[i - 1][w - W[i]]); else grid[i][w] = grid[i - 1][w]; updateLogText(`Analyzing Entity ${i} (W=${W[i]},V=${V[i]}): Matrix slot DP[${i}][${w}] assigned optimized value ${grid[i][w]}`); drawKnapsackGrid(grid, i, w); await DELAY(speedMs / 2); } }
                 updateLogText(`Matrix resolved. Absolute maximum theoretical value = ${grid[3][6]} under capacity limit ${cap}.`);
+            } else if (dpAlgo === 'lcs') {
+                const s1 = 'ABCDE', s2 = 'ACE';
+                const m = s1.length, n = s2.length;
+                const grid = Array(m+1).fill(null).map(() => Array(n+1).fill(0));
+                for (let i = 1; i <= m && animating; i++) {
+                    for (let j = 1; j <= n && animating; j++) {
+                        if (s1[i-1] === s2[j-1]) {
+                            grid[i][j] = grid[i-1][j-1] + 1;
+                            updateLogText(`Match! '${s1[i-1]}' == '${s2[j-1]}' → dp[${i}][${j}] = ${grid[i][j]}`);
+                        } else {
+                            grid[i][j] = Math.max(grid[i-1][j], grid[i][j-1]);
+                            updateLogText(`No match '${s1[i-1]}' ≠ '${s2[j-1]}' → dp[${i}][${j}] = max(${grid[i-1][j]}, ${grid[i][j-1]}) = ${grid[i][j]}`);
+                        }
+                        drawLCSGrid(s1, s2, grid, i, j);
+                        await DELAY(speedMs / 2);
+                    }
+                }
+                updateLogText(`LCS length = ${grid[m][n]}. The longest common subsequence of "${s1}" and "${s2}" has ${grid[m][n]} characters.`);
+            } else if (dpAlgo === 'stairs') {
+                const dp = Array(8).fill(null); dp[0] = 1; dp[1] = 1;
+                drawStairsTable(dp, 1); await DELAY(speedMs);
+                for (let i = 2; i < 8 && animating; i++) {
+                    dp[i] = dp[i-1] + dp[i-2];
+                    updateLogText(`Ways to step ${i} = ways(${i-1}) + ways(${i-2}) = ${dp[i-1]} + ${dp[i-2]} = ${dp[i]}`);
+                    drawStairsTable(dp, i);
+                    await DELAY(speedMs);
+                }
+                updateLogText(`Climbing Stairs complete. Ways to reach step 7 = ${dp[7]}`);
             }
             animating = false;
+        }
+
+        let patAlgo = 'twopointers';
+        function renderPatterns() {
+            document.getElementById('content').innerHTML = `
+    <div class="topic-grid">
+      <div class="topic-btn active" id="pat-twopointers" onclick="setPattern('twopointers')"><div class="icon">👉👈</div><div class="name">Two Pointers</div><div class="complexity">O(n)</div></div>
+      <div class="topic-btn" id="pat-sliding" onclick="setPattern('sliding')"><div class="icon">🪟</div><div class="name">Sliding Window</div><div class="complexity">O(n)</div></div>
+      <div class="topic-btn" id="pat-backtrack" onclick="setPattern('backtrack')"><div class="icon">🔙</div><div class="name">Backtracking</div><div class="complexity">O(N!)</div></div>
+      <div class="topic-btn" id="pat-greedy" onclick="setPattern('greedy')"><div class="icon">🪙</div><div class="name">Greedy (Coins)</div><div class="complexity">O(n)</div></div>
+      <div class="topic-btn" id="pat-hanoi" onclick="setPattern('hanoi')"><div class="icon">🗴</div><div class="name">Tower of Hanoi</div><div class="complexity">O(2ⁿ)</div></div>
+      <div class="topic-btn" id="pat-prefix" onclick="setPattern('prefix')"><div class="icon">➕</div><div class="name">Prefix Sum</div><div class="complexity">O(n)</div></div>
+      <div class="topic-btn" id="pat-fastslow" onclick="setPattern('fastslow')"><div class="icon">🐢🐇</div><div class="name">Fast & Slow</div><div class="complexity">O(n)</div></div>
+    </div>
+    <div class="demo-area">
+      <div class="demo-title" id="pat-title">Two Pointers (Target Sum)</div>
+      <div class="demo-desc" id="pat-desc">Uses two pointers moving towards each other to find a target sum in a sorted array.</div>
+      <div class="viz-area" id="pat-viz" style="display:flex; justify-content:center; align-items:center;"></div>
+      <div class="controls" style="flex-wrap:wrap;gap:15px;">
+        <button class="btn primary" onclick="runPattern()">▶ Execute Trace</button>
+        <button class="btn" onclick="renderPatterns()">↺ Reset Memory</button>
+        <div class="speed-row">Speed: <input type="range" class="speed" min="50" max="800" value="400" oninput="speedMs=800-this.value+50"></div>
+      </div>
+      <div class="log" id="pattern-log">Pattern environment initialized. Press execute.</div>
+    </div>`;
+            setPattern(patAlgo);
+        }
+
+        function setPattern(a) {
+            patAlgo = a; animating = false;
+            ['twopointers', 'sliding', 'backtrack', 'greedy', 'hanoi', 'prefix', 'fastslow'].forEach(m => { const b = document.getElementById('pat-' + m); if (b) b.classList.toggle('active', m === a); });
+            const titles = { twopointers: 'Two Pointers (Target Sum)', sliding: 'Sliding Window (Max Sum K=3)', backtrack: 'Backtracking (N-Queens 4x4)', greedy: 'Greedy Algorithm (Coin Change)', hanoi: 'Tower of Hanoi (Recursion)', prefix: 'Prefix Sum Array', fastslow: 'Fast & Slow Pointers (Cycle Detection)' };
+            const descs = { twopointers: 'L and R pointers move towards each other to find elements summing to target.', sliding: 'Maintains a fixed-size window and slides it across the array to find max sum.', backtrack: 'Explores all possibilities by placing queens, backtracking if a conflict is found.', greedy: 'Picks the largest possible denomination repeatedly to make change.', hanoi: 'Move N disks from peg A to C using B as auxiliary. Each recursive call moves one disk at a time.', prefix: 'Build a running total array so any subarray sum can be computed in O(1) via prefix[j] - prefix[i].', fastslow: 'Slow pointer moves 1 step, fast moves 2. If they meet, a cycle exists in the linked list.' };
+            document.getElementById('pat-title').textContent = titles[a];
+            document.getElementById('pat-desc').textContent = descs[a];
+            updateLogText('Grid architecture switched for pattern. Press execute trace.');
+            
+            const viz = document.getElementById('pat-viz');
+            if(viz) viz.innerHTML = '';
+            
+            if (a === 'twopointers') drawPatternArr([2, 5, 8, 12, 16, 23, 38, 56, 72, 91], 0, 9);
+            else if (a === 'sliding') drawPatternArr([4, 2, 1, 7, 8, 1, 2, 8, 1, 0], 0, 2, [], true);
+            else if (a === 'backtrack') drawNQueensGrid([], -1, -1);
+            else if (a === 'greedy') drawCoins(87, {}, [25, 10, 5, 1]);
+            else if (a === 'hanoi') drawHanoi({A:[3,2,1], B:[], C:[]});
+            else if (a === 'prefix') drawPrefixSum([2,4,1,3,5,2,1], [], -1);
+            else if (a === 'fastslow') drawFastSlow([1,3,5,7,9,11,13,5], -1, -1);
+        }
+
+        function drawPatternArr(arr, L, R, foundIndices=[], isWindow=false) {
+            const viz = document.getElementById('pat-viz'); if(!viz) return;
+            viz.innerHTML = '';
+            const wrap = document.createElement('div'); wrap.className = 'arr-box';
+            wrap.style.cssText = 'display:flex; gap:10px; align-items:flex-end; position:relative; margin-bottom: 30px;';
+            arr.forEach((v, i) => {
+                const c = document.createElement('div');
+                let inWindow = isWindow && i >= L && i <= R;
+                let active = (!isWindow && (i === L || i === R)) || inWindow;
+                let isFound = foundIndices.includes(i);
+                c.className = 'arr-cell' + (isFound ? ' sorted' : active ? ' highlight' : '');
+                c.style.position = 'relative';
+                c.innerHTML = `<span>${v}</span>`;
+                if (!isWindow) {
+                    if (i === L) c.innerHTML += `<div style="position:absolute; bottom:-30px; font-size:14px; font-weight:800; color:var(--accent); text-shadow:0 0 10px var(--accent);">L</div>`;
+                    if (i === R) c.innerHTML += `<div style="position:absolute; bottom:-30px; font-size:14px; font-weight:800; color:var(--accent2); text-shadow:0 0 10px var(--accent2);">R</div>`;
+                } else if (inWindow && i === Math.floor((L+R)/2)) {
+                    c.innerHTML += `<div style="position:absolute; bottom:-35px; min-width:60px; font-size:12px; font-weight:800; color:var(--accent); left:50%; transform:translateX(-50%); background:rgba(124,106,255,0.2); border:1px solid var(--accent); border-radius:10px; padding:2px 6px; box-sizing:border-box;">Window</div>`;
+                }
+                wrap.appendChild(c);
+            });
+            viz.appendChild(wrap);
+        }
+
+        function drawNQueensGrid(queens, tryRow, tryCol) {
+            const viz = document.getElementById('pat-viz'); if (!viz) return;
+            viz.innerHTML = '';
+            const grid = document.createElement('div');
+            grid.style.cssText = 'display:grid; grid-template-columns:repeat(4, 50px); border:2px solid rgba(255,255,255,0.05); border-radius:10px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.5);';
+            for (let r=0; r<4; r++) {
+                for (let c=0; c<4; c++) {
+                    const cell = document.createElement('div');
+                    const isDark = (r+c)%2 === 1;
+                    cell.style.cssText = `width:50px; height:50px; display:flex; align-items:center; justify-content:center; font-size:24px; background:${isDark ? '#1b163d' : '#2a225c'}; transition:all 0.3s;`;
+                    if (r < queens.length && queens[r] === c) {
+                        cell.innerHTML = '♛';
+                        cell.style.color = '#fff';
+                        cell.style.textShadow = '0 0 10px var(--accent)';
+                    } else if (r === tryRow && c === tryCol) {
+                        cell.innerHTML = '♛';
+                        cell.style.color = 'var(--accent2)';
+                        cell.style.textShadow = '0 0 15px var(--accent2)';
+                        cell.style.transform = 'scale(1.2)';
+                    }
+                    grid.appendChild(cell);
+                }
+            }
+            viz.appendChild(grid);
+        }
+
+        function drawCoins(amount, counts, coins) {
+            const viz = document.getElementById('pat-viz'); if (!viz) return;
+            viz.innerHTML = `<div style="display:flex; flex-direction:column; gap:20px; align-items:center; width:100%;">
+                <div style="font-size:24px; font-family:var(--font-mono); font-weight:800;">Target Remaining: <span style="color:var(--accent3); text-shadow:0 0 10px var(--accent3);">${amount}</span></div>
+                <div style="display:flex; gap:25px; flex-wrap:wrap; justify-content:center;">
+                    ${coins.map(c => `
+                        <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+                            <div style="width:54px; height:54px; border-radius:50%; background:linear-gradient(135deg, #ffd700, #daa520); color:#000; font-weight:900; display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 6px 15px rgba(255,215,0,0.4), inset 0 2px 0 rgba(255,255,255,0.5); border:2px solid #b8860b;">${c}</div>
+                            <div style="font-family:var(--font-mono); font-weight:800; color:var(--muted); background:rgba(0,0,0,0.3); padding:4px 12px; border-radius:12px; border:1px solid rgba(255,255,255,0.05);">x ${counts[c] || 0}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+        }
+
+        async function runPattern() {
+            if (animating) return; animating = true;
+            if (patAlgo === 'twopointers') {
+                const arr = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91];
+                const target = 72;
+                let L = 0, R = arr.length - 1;
+                updateLogText(`Target Sum = ${target}. Starting Two Pointers.`);
+                while (L < R && animating) {
+                    drawPatternArr(arr, L, R);
+                    let sum = arr[L] + arr[R];
+                    updateLogText(`Checking L(${arr[L]}) + R(${arr[R]}) = ${sum}`);
+                    await DELAY(speedMs);
+                    if (sum === target) {
+                        drawPatternArr(arr, L, R, [L, R]);
+                        updateLogText(`Found target ${target} at indices ${L} and ${R}!`);
+                        break;
+                    } else if (sum < target) {
+                        updateLogText(`${sum} < ${target}. Moving Left pointer +1.`);
+                        L++;
+                    } else {
+                        updateLogText(`${sum} > ${target}. Moving Right pointer -1.`);
+                        R--;
+                    }
+                    await DELAY(speedMs/2);
+                }
+                if (L >= R) updateLogText("No pair found for target.");
+            } else if (patAlgo === 'sliding') {
+                const arr = [4, 2, 1, 7, 8, 1, 2, 8, 1, 0];
+                const K = 3;
+                let maxSum = 0, currentSum = 0;
+                let bestL = 0;
+                for (let i = 0; i < K; i++) currentSum += arr[i];
+                maxSum = currentSum;
+                updateLogText(`Initial window [0-${K-1}] sum = ${currentSum}`);
+                drawPatternArr(arr, 0, K-1, [], true);
+                await DELAY(speedMs*1.5);
+                
+                for (let i = K; i < arr.length && animating; i++) {
+                    currentSum = currentSum - arr[i-K] + arr[i];
+                    if (currentSum > maxSum) {
+                        maxSum = currentSum;
+                        bestL = i - K + 1;
+                    }
+                    drawPatternArr(arr, i-K+1, i, [], true);
+                    updateLogText(`Slid to [${i-K+1} to ${i}]. -${arr[i-K]} +${arr[i]} = Sum: ${currentSum}. Max: ${maxSum}`);
+                    await DELAY(speedMs*1.5);
+                }
+                drawPatternArr(arr, bestL, bestL+K-1, Array.from({length:K}, (_,i)=>bestL+i), true);
+                updateLogText(`Completed. Maximum sum of size ${K} is ${maxSum}.`);
+            } else if (patAlgo === 'backtrack') {
+                const N = 4;
+                const queens = [];
+                let solved = false;
+                
+                function isSafe(queens, r, c) {
+                    for (let i = 0; i < r; i++) {
+                        let qc = queens[i];
+                        if (qc === c || Math.abs(qc - c) === Math.abs(i - r)) return false;
+                    }
+                    return true;
+                }
+                
+                async function solve(row) {
+                    if (!animating) return false;
+                    if (row === N) { solved = true; return true; }
+                    
+                    for (let col = 0; col < N; col++) {
+                        if (!animating) return false;
+                        drawNQueensGrid(queens, row, col);
+                        updateLogText(`Evaluating Queen at row ${row}, col ${col}`);
+                        await DELAY(speedMs);
+                        
+                        if (isSafe(queens, row, col)) {
+                            queens.push(col);
+                            drawNQueensGrid(queens, -1, -1);
+                            updateLogText(`Safe! Placed Queen at row ${row}, col ${col}`);
+                            await DELAY(speedMs/2);
+                            
+                            if (await solve(row + 1)) return true;
+                            
+                            if (!animating) return false;
+                            let removedCol = queens.pop();
+                            drawNQueensGrid(queens, row, removedCol);
+                            updateLogText(`Backtracking. Removing Queen from row ${row}, col ${removedCol}`);
+                            await DELAY(speedMs);
+                        } else {
+                            updateLogText(`Conflict! Cannot place Queen at row ${row}, col ${col}`);
+                            await DELAY(speedMs/2);
+                        }
+                    }
+                    return false;
+                }
+                
+                await solve(0);
+                if (solved) {
+                    drawNQueensGrid(queens, -1, -1);
+                    updateLogText("Solution Found for N-Queens!");
+                } else if(animating) {
+                    updateLogText("No solution exists.");
+                }
+            } else if (patAlgo === 'greedy') {
+                let amount = 87;
+                const coins = [25, 10, 5, 1];
+                const counts = {25:0, 10:0, 5:0, 1:0};
+                updateLogText(`Target amount: ${amount}. Starting greedy coin selection.`);
+                drawCoins(amount, counts, coins);
+                await DELAY(speedMs);
+                
+                for (let c of coins) {
+                    if (!animating) break;
+                    updateLogText(`Trying coin denomination: ${c}`);
+                    await DELAY(speedMs);
+                    while (amount >= c && animating) {
+                        amount -= c;
+                        counts[c]++;
+                        drawCoins(amount, counts, coins);
+                        updateLogText(`Added ${c} coin. Remaining amount: ${amount}`);
+                        await DELAY(speedMs);
+                    }
+                }
+                if (animating) {
+                    updateLogText(`Change made perfectly using greedy algorithm.`);
+                }
+            } else if (patAlgo === 'hanoi') {
+                const pegs = {A:[3,2,1], B:[], C:[]};
+                drawHanoi(pegs);
+                async function moveHanoi(n, from, to, aux) {
+                    if (n === 0 || !animating) return;
+                    await moveHanoi(n-1, from, aux, to);
+                    if (!animating) return;
+                    const disk = pegs[from].pop();
+                    pegs[to].push(disk);
+                    drawHanoi(pegs);
+                    updateLogText(`Move disk ${disk} from peg ${from} → peg ${to}`);
+                    await DELAY(speedMs);
+                    await moveHanoi(n-1, aux, to, from);
+                }
+                await moveHanoi(3, 'A', 'C', 'B');
+                if (animating) updateLogText('Tower of Hanoi solved! All disks moved to peg C.');
+            } else if (patAlgo === 'prefix') {
+                const arr = [2,4,1,3,5,2,1];
+                const prefix = Array(arr.length).fill(null);
+                prefix[0] = arr[0];
+                drawPrefixSum(arr, prefix, 0);
+                updateLogText(`prefix[0] = arr[0] = ${arr[0]}`);
+                await DELAY(speedMs);
+                for (let i = 1; i < arr.length && animating; i++) {
+                    prefix[i] = prefix[i-1] + arr[i];
+                    drawPrefixSum(arr, prefix, i);
+                    updateLogText(`prefix[${i}] = prefix[${i-1}] + arr[${i}] = ${prefix[i-1]} + ${arr[i]} = ${prefix[i]}`);
+                    await DELAY(speedMs);
+                }
+                if (animating) {
+                    const l=2, r=5;
+                    const rangeSum = prefix[r] - (l > 0 ? prefix[l-1] : 0);
+                    updateLogText(`Example query: sum(${l}..${r}) = prefix[${r}] - prefix[${l-1}] = ${prefix[r]} - ${prefix[l-1]} = ${rangeSum}`);
+                }
+            } else if (patAlgo === 'fastslow') {
+                const arr = [1,3,5,7,9,11,13,5];
+                let slow = 0, fast = 0;
+                updateLogText('Starting cycle detection. Slow moves 1 step, Fast moves 2 steps.');
+                drawFastSlow(arr, slow, fast);
+                await DELAY(speedMs);
+                while (animating) {
+                    slow = (slow + 1) % arr.length;
+                    fast = (fast + 2) % arr.length;
+                    drawFastSlow(arr, slow, fast);
+                    updateLogText(`Slow → index ${slow} (val ${arr[slow]}), Fast → index ${fast} (val ${arr[fast]})`);
+                    await DELAY(speedMs);
+                    if (slow === fast) {
+                        drawFastSlow(arr, slow, fast);
+                        updateLogText(`✓ Cycle detected! Slow and Fast met at index ${slow}. Cycle exists.`);
+                        break;
+                    }
+                    if (fast >= arr.length - 1) {
+                        updateLogText('No cycle detected.');
+                        break;
+                    }
+                }
+            }
+            animating = false;
+        }
+
+        /* ===== Tower of Hanoi ===== */
+        function drawHanoi(pegs) {
+            const viz = document.getElementById('pat-viz'); if (!viz) return;
+            viz.innerHTML = '';
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'display:flex; gap:40px; align-items:flex-end; justify-content:center; width:100%;';
+            ['A','B','C'].forEach(peg => {
+                const col = document.createElement('div');
+                col.style.cssText = 'display:flex; flex-direction:column-reverse; align-items:center; gap:4px; min-height:120px; min-width:110px; position:relative;';
+                const base = document.createElement('div');
+                base.style.cssText = 'width:110px; height:4px; background:rgba(255,255,255,0.2); border-radius:2px;';
+                const pole = document.createElement('div');
+                pole.style.cssText = 'position:absolute; bottom:4px; width:4px; height:100px; background:rgba(255,255,255,0.1); border-radius:2px;';
+                col.appendChild(base);
+                col.appendChild(pole);
+                const colors = ['var(--accent)', 'var(--accent2)', 'var(--accent3)'];
+                (pegs[peg] || []).forEach((disk, i) => {
+                    const d = document.createElement('div');
+                    const w = 40 + disk * 22;
+                    d.style.cssText = `width:${w}px; height:24px; border-radius:8px; background:${colors[disk-1]}; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-weight:800; font-size:13px; color:#000; box-shadow:0 4px 10px rgba(0,0,0,0.4); z-index:1;`;
+                    d.textContent = disk;
+                    col.appendChild(d);
+                });
+                const label = document.createElement('div');
+                label.style.cssText = 'font-family:var(--font-mono); font-weight:800; font-size:14px; color:var(--muted); margin-top:8px; z-index:1;';
+                label.textContent = peg;
+                col.appendChild(label);
+                wrap.appendChild(col);
+            });
+            viz.appendChild(wrap);
+        }
+
+        /* ===== Prefix Sum ===== */
+        function drawPrefixSum(arr, prefix, cur) {
+            const viz = document.getElementById('pat-viz'); if (!viz) return;
+            viz.innerHTML = '';
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'display:flex; flex-direction:column; gap:16px; align-items:center; width:100%;';
+            // Original array
+            const origRow = document.createElement('div'); origRow.style.cssText = 'display:flex; gap:8px; align-items:center;';
+            const origLabel = document.createElement('span'); origLabel.style.cssText = 'font-family:var(--font-mono); font-weight:800; font-size:12px; color:var(--muted); width:80px; text-align:right;'; origLabel.textContent = 'arr[]'; origRow.appendChild(origLabel);
+            arr.forEach((v, i) => { const c = document.createElement('div'); c.className = 'arr-cell' + (i === cur ? ' highlight' : ''); c.textContent = v; origRow.appendChild(c); });
+            wrap.appendChild(origRow);
+            // Prefix array
+            if (prefix.length) {
+                const prefRow = document.createElement('div'); prefRow.style.cssText = 'display:flex; gap:8px; align-items:center;';
+                const prefLabel = document.createElement('span'); prefLabel.style.cssText = 'font-family:var(--font-mono); font-weight:800; font-size:12px; color:var(--accent3); width:80px; text-align:right;'; prefLabel.textContent = 'prefix[]'; prefRow.appendChild(prefLabel);
+                prefix.forEach((v, i) => { const c = document.createElement('div'); c.className = 'arr-cell' + (i === cur ? ' sorted' : v !== null ? ' compare' : ''); c.textContent = v ?? '-'; prefRow.appendChild(c); });
+                wrap.appendChild(prefRow);
+            }
+            viz.appendChild(wrap);
+        }
+
+        /* ===== Fast & Slow Pointers ===== */
+        function drawFastSlow(arr, slow, fast) {
+            const viz = document.getElementById('pat-viz'); if (!viz) return;
+            viz.innerHTML = '';
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'display:flex; gap:0; align-items:center; justify-content:center; flex-wrap:wrap; position:relative;';
+            arr.forEach((v, i) => {
+                const n = document.createElement('div'); n.className = 'ln-node';
+                const box = document.createElement('div');
+                box.className = 'ln-box' + (i === slow && i === fast ? ' head' : i === slow ? ' head' : i === fast ? ' tail' : '');
+                box.style.position = 'relative';
+                box.textContent = v;
+                if (i === slow) box.innerHTML += '<div style="position:absolute; bottom:-25px; font-size:11px; font-weight:800; color:var(--accent); text-shadow:0 0 8px var(--accent);">🐢S</div>';
+                if (i === fast) box.innerHTML += '<div style="position:absolute; top:-25px; font-size:11px; font-weight:800; color:var(--accent3); text-shadow:0 0 8px var(--accent3);">🐇F</div>';
+                n.appendChild(box);
+                if (i < arr.length - 1) { const arr2 = document.createElement('span'); arr2.className = 'ln-arrow'; arr2.textContent = '→'; n.appendChild(arr2); }
+                wrap.appendChild(n);
+            });
+            // Show cycle arrow back
+            const cycleNote = document.createElement('div');
+            cycleNote.style.cssText = 'width:100%; text-align:center; font-family:var(--font-mono); font-size:12px; color:var(--accent2); margin-top:12px; opacity:0.7;';
+            cycleNote.textContent = '↰ last node points back to index 3 (cycle)';
+            wrap.appendChild(cycleNote);
+            viz.appendChild(wrap);
         }
 
         renderSorting();
     </script>
 </body>
-
 </html>
