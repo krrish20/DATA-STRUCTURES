@@ -490,12 +490,18 @@
         }
 
         .iso-3d {
-            transform: perspective(1200px) rotateX(60deg) rotateZ(-45deg);
+            /* Interactive 3D variables */
+            --rx: 60deg;
+            --rz: -45deg;
+            transform: perspective(1200px) rotateX(var(--rx)) rotateZ(var(--rz));
             transform-style: preserve-3d;
-            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
             margin-top: 60px !important;
             margin-bottom: 60px !important;
+            cursor: grab;
+            user-select: none;
         }
+        .iso-3d:active { cursor: grabbing; }
         .iso-3d .dp-cell, .iso-3d .dp-cell.header {
             transform-style: preserve-3d;
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s;
@@ -1256,6 +1262,35 @@
         }
         const Scrubber = new StateManager();
 
+        /* ===== ISO 3D Interaction ===== */
+        let isIsoDragging = false, isoX = 0, isoY = 0, currentRX = 60, currentRZ = -45;
+        const isoStart = (e) => {
+            const iso = e.target.closest('.iso-3d'); if (!iso) return;
+            isIsoDragging = true; const ev = e.type.includes('touch') ? e.touches[0] : e;
+            isoX = ev.clientX; isoY = ev.clientY; iso.style.transition = 'none';
+        };
+        const isoMove = (e) => {
+            if (!isIsoDragging) return; const iso = document.querySelector('.iso-3d'); if (!iso) return;
+            const ev = e.type.includes('touch') ? e.touches[0] : e;
+            let dx = ev.clientX - isoX; let dy = ev.clientY - isoY;
+            currentRZ += dx * 0.5; currentRX -= dy * 0.5;
+            currentRX = Math.max(20, Math.min(85, currentRX)); // Limit vertical tilt
+            iso.style.setProperty('--rx', currentRX + 'deg');
+            iso.style.setProperty('--rz', currentRZ + 'deg');
+            isoX = ev.clientX; isoY = ev.clientY;
+            if (e.cancelable) e.preventDefault();
+        };
+        const isoEnd = () => {
+            isIsoDragging = false; const iso = document.querySelector('.iso-3d');
+            if (iso) iso.style.transition = 'transform 0.4s ease-out';
+        };
+        document.addEventListener('mousedown', isoStart);
+        window.addEventListener('mousemove', isoMove);
+        window.addEventListener('mouseup', isoEnd);
+        document.addEventListener('touchstart', isoStart, {passive:false});
+        window.addEventListener('touchmove', isoMove, {passive:false});
+        window.addEventListener('touchend', isoEnd);
+
         const DELAY = async (ms) => {
             if (Scrubber.isRecording) { Scrubber.record(); return; }
             await new Promise(r => setTimeout(r, ms));
@@ -1270,14 +1305,20 @@
             let controls = document.querySelector('.controls');
             if (controls && !document.getElementById('tt-scrub')) {
                 let div = document.createElement('div');
-                div.id = 'tt-row'; div.style.cssText = "width:100%; display:flex; align-items:center; gap:10px; margin-top: 14px; background: rgba(0,0,0,0.4); padding: 8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.05);";
-                div.innerHTML = `<span style="font-size:12px; font-weight:800; color:var(--muted);">TIMELINE:</span>
-                <button class="btn" style="padding:4px 8px; font-size:11px;" onclick="Scrubber.pause(); Scrubber.playIdx>0 && Scrubber.applyFrame(Scrubber.playIdx-1)">⏮ Back</button>
-                <button class="btn primary" style="padding:4px 8px; font-size:11px;" onclick="if(Scrubber.timer) Scrubber.pause(); else Scrubber.play(speedMs);">⏯ Play</button>
-                <button class="btn" style="padding:4px 8px; font-size:11px;" onclick="Scrubber.pause(); Scrubber.playIdx<Scrubber.states.length-1 && Scrubber.applyFrame(Scrubber.playIdx+1)">⏭ Fwd</button>
-                <input type="range" id="tt-scrub" min="0" max="${Math.max(0, Scrubber.states.length-1)}" value="0" style="flex:1; accent-color:var(--accent3);" oninput="Scrubber.applyFrame(+this.value); Scrubber.pause();">
-                <span style="font-size:11px; font-family:var(--font-mono); color:var(--muted);"><span id="tt-current">0</span> / <span id="tt-max">${Math.max(0, Scrubber.states.length-1)}</span></span>
-                <button class="btn" id="export-btn" style="padding:4px 8px; font-size:11px; margin-left:10px; background:#4a3a99; border-color:#5444b0; color:#fff;" onclick="exportTraceVideo();">⏺ Export .webm</button>`;
+                div.id = 'tt-row'; 
+                div.style.cssText = "width:100%; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-top:14px; background:rgba(0,0,0,0.4); padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);";
+                div.innerHTML = `
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:10px; font-weight:800; color:var(--muted); margin-right:4px;">TIMELINE:</span>
+                    <button class="btn" style="padding:4px 8px; font-size:11px;" onclick="Scrubber.pause(); Scrubber.playIdx>0 && Scrubber.applyFrame(Scrubber.playIdx-1)">⏮</button>
+                    <button class="btn primary" style="padding:4px 8px; font-size:11px;" onclick="if(Scrubber.timer) Scrubber.pause(); else Scrubber.play(speedMs);">⏯</button>
+                    <button class="btn" style="padding:4px 8px; font-size:11px;" onclick="Scrubber.pause(); Scrubber.playIdx<Scrubber.states.length-1 && Scrubber.applyFrame(Scrubber.playIdx+1)">⏭</button>
+                </div>
+                <div style="flex:1; min-width:180px; display:flex; align-items:center; gap:10px;">
+                    <input type="range" id="tt-scrub" min="0" max="${Math.max(0, Scrubber.states.length-1)}" value="0" style="flex:1; accent-color:var(--accent3);" oninput="Scrubber.applyFrame(+this.value); Scrubber.pause();">
+                    <span style="font-size:11px; font-family:var(--font-mono); color:var(--muted); white-space:nowrap;"><span id="tt-current">0</span> / <span id="tt-max">${Math.max(0, Scrubber.states.length-1)}</span></span>
+                </div>
+                <button class="btn" id="export-btn" style="padding:4px 8px; font-size:11px; background:#4a3a99; border-color:#5444b0; color:#fff;" onclick="exportTraceVideo();">⏺ Export</button>`;
                 controls.appendChild(div);
             } else if (document.getElementById('tt-scrub')) {
                 document.getElementById('tt-scrub').max = Math.max(0, Scrubber.states.length - 1);
@@ -2874,8 +2915,8 @@
         }
 
         function clearDPFlow() {
-            const old = document.getElementById('dp-flow-svg');
-            if (old) old.remove();
+            const oldFlows = document.querySelectorAll('#dp-flow-svg');
+            oldFlows.forEach(f => f.remove());
         }
 
         function drawStairsTable(dp, cur) {
