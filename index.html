@@ -175,6 +175,22 @@
             grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
             gap: 12px;
             margin-bottom: 25px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, margin 0.3s ease;
+            opacity: 0;
+            margin-bottom: 0;
+            background: rgba(0,0,0,0.2);
+            padding: 0 10px;
+            border-radius: 16px;
+        }
+
+        .topic-grid.expanded {
+            max-height: 500px;
+            opacity: 1;
+            margin-bottom: 25px;
+            padding: 20px 10px;
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
         .topic-btn {
@@ -1153,6 +1169,28 @@
                 font-size: 14px;
             }
         }
+
+        .telemetry-hud {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(79, 255, 229, 0.3);
+            border-radius: 8px;
+            padding: 10px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--muted);
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+        .tel-row { display: flex; justify-content: space-between; gap: 15px; }
+        .tel-val { color: var(--accent3); font-weight: 800; font-size: 12px; }
     </style>
 </head>
 
@@ -1250,6 +1288,27 @@
         }
         let animating = false;
         let speedMs = 400;
+
+        let Metrics = { compares: 0, writes: 0, swaps: 0 };
+        function updateTelemetry() {
+            const vizArea = document.querySelector('.viz-area');
+            if (!vizArea) return;
+            const existing = document.getElementById('tel-hud');
+            if (existing) existing.remove();
+            const hud = document.createElement('div');
+            hud.id = 'tel-hud';
+            hud.className = 'telemetry-hud';
+            hud.innerHTML = `
+                <div class="tel-row"><span>Comparisons:</span> <span class="tel-val">${Metrics.compares}</span></div>
+                <div class="tel-row"><span>Array Writes:</span> <span class="tel-val">${Metrics.writes}</span></div>
+                <div class="tel-row"><span>Memory Swaps:</span> <span class="tel-val">${Metrics.swaps}</span></div>
+            `;
+            vizArea.appendChild(hud);
+        }
+        function resetMetrics() {
+            Metrics = { compares: 0, writes: 0, swaps: 0 };
+            updateTelemetry();
+        }
 
         function parseLeetCode() {
             const val = document.getElementById('lc-search').value.toLowerCase().trim();
@@ -1373,20 +1432,34 @@
             recorder.stop();
         }
 
+        let activeTab = 'sorting';
         function switchTab(t) {
+            animating = false;
+            Scrubber.pause();
+            Scrubber.states = [];
+            const isSame = (activeTab === t);
+            activeTab = t;
+
             document.querySelectorAll('.tab').forEach((el, i) => {
                 const tabs = ['sorting', 'searching', 'ds', 'trees', 'graphs', 'dp', 'patterns'];
                 el.classList.toggle('active', tabs[i] === t);
             });
-            animating = false;
-            Scrubber.pause();
-            Scrubber.states = [];
+
+            const grid = document.querySelector('.topic-grid');
+            if (isSame && grid) {
+                grid.classList.toggle('expanded');
+                return;
+            }
+
             const ttrow = document.getElementById('tt-row');
             if (ttrow) ttrow.remove();
             const pip = document.getElementById('pip-window');
             if (pip) pip.style.display = 'none';
             const fns = { sorting: renderSorting, searching: renderSearching, ds: renderDS, trees: renderTrees, graphs: renderGraphs, dp: renderDP, patterns: renderPatterns };
             if (fns[t]) fns[t]();
+
+            const newGrid = document.querySelector('.topic-grid');
+            if (newGrid) setTimeout(() => newGrid.classList.add('expanded'), 50);
         }
 
         /* UI Helper: Animate log to draw attention */
@@ -1479,6 +1552,19 @@
         let sortArr = [5, 3, 8, 1, 9, 2, 7, 4, 6];
         let sortSteps = 0;
 
+        function setSortAlgo(id) {
+            sortAlgo = id; 
+            const grid = document.querySelector('.topic-grid');
+            if (grid) grid.classList.remove('expanded');
+            const data = algos.find(a => a.id === id);
+            document.getElementById('sort-title').textContent = data.name;
+            document.getElementById('sort-desc').textContent = CONCEPT_DICT[id].keyConcept;
+            document.querySelectorAll('.topic-grid .topic-btn').forEach(b => b.classList.toggle('active', b.id === 'btn-' + id));
+            resetSort();
+            updateLogText(`${data.name} environment allocated. Data buffer ready for visualization.`);
+            updateConceptUI(id);
+        }
+
         function renderSorting() {
             document.getElementById('content').innerHTML = `
     <div class="topic-grid" id="algo-grid"></div>
@@ -1503,19 +1589,11 @@
             const grid = document.getElementById('algo-grid');
             algos.forEach(a => {
                 const d = document.createElement('div');
+                d.id = 'btn-' + a.id;
                 d.className = 'topic-btn' + (a.id === sortAlgo && !document.getElementById('race-demo') ? ' active' : '');
                 d.innerHTML = `<div class="icon">${a.icon}</div><div class="name">${a.name}</div><div class="complexity">${a.time}</div>`;
                 d.onclick = () => { 
-                    sortAlgo = a.id; 
-                    animating = false; 
-                    if (document.getElementById('race-demo')) {
-                        renderSorting();
-                    } else {
-                        document.querySelectorAll('#algo-grid .topic-btn').forEach(b => b.classList.remove('active')); 
-                        d.classList.add('active'); 
-                        updateSortInfo(); 
-                        resetSort(); 
-                    }
+                    setSortAlgo(a.id);
                 };
                 grid.appendChild(d);
             });
@@ -1590,19 +1668,24 @@
             if (animating) return;
             animating = true;
             sortSteps = 0;
+            resetMetrics();
             let arr = [...sortArr];
             const sorted = [];
 
             if (sortAlgo === 'bubble') {
                 for (let i = 0; i < arr.length && animating; i++) {
-                    updatePIP('bubble', 1);
+                    updatePIP('bubble', 0);
                     for (let j = 0; j < arr.length - i - 1 && animating; j++) {
+                        updatePIP('bubble', 1);
                         updateLogText(`Comparing elements at index ${j} and ${j + 1}`);
                         drawSortBars(arr, [j], [j + 1], Array.from({ length: i }, (_, k) => arr.length - 1 - k));
+                        
+                        Metrics.compares++; updateTelemetry();
                         updatePIP('bubble', 2);
                         await DELAY(speedMs); setSteps(++sortSteps);
                         if (arr[j] > arr[j + 1]) { 
                             [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]]; 
+                            Metrics.swaps++; Metrics.writes += 2; updateTelemetry();
                             updatePIP('bubble', 3);
                             updateLogText(`Swapped! Array state: [${arr}]`); 
                             drawSortBars(arr, [j + 1], [j], Array.from({ length: i }, (_, k) => arr.length - 1 - k)); 
@@ -1613,27 +1696,44 @@
                 }
             } else if (sortAlgo === 'selection') {
                 for (let i = 0; i < arr.length && animating; i++) {
+                    updatePIP('selection', 0);
                     let min = i;
+                    updatePIP('selection', 1);
                     for (let j = i + 1; j < arr.length && animating; j++) {
+                        updatePIP('selection', 2);
                         updateLogText(`Scanning for minimum: comparing arr[${j}]=${arr[j]} with current min=${arr[min]}`);
                         drawSortBars(arr, [min], [j], [...sorted]);
+                        
+                        Metrics.compares++; updateTelemetry();
+                        updatePIP('selection', 3);
                         await DELAY(speedMs); setSteps(++sortSteps);
-                        if (arr[j] < arr[min]) min = j;
+                        if (arr[j] < arr[min]) { min = j; updatePIP('selection', 4); }
                     }
                     [arr[i], arr[min]] = [arr[min], arr[i]];
+                    Metrics.swaps++; Metrics.writes += 2; updateTelemetry();
+                    updatePIP('selection', 5);
                     sorted.push(i);
                     updateLogText(`Placed ${arr[i]} at its final position ${i}`);
                     drawSortBars(arr, [], [], [...sorted]); await DELAY(speedMs);
                 }
             } else if (sortAlgo === 'insertion') {
                 for (let i = 1; i < arr.length && animating; i++) {
+                    updatePIP('insertion', 0);
                     let key = arr[i], j = i - 1;
-                    while (j >= 0 && arr[j] > key && animating) {
+                    updatePIP('insertion', 1); updatePIP('insertion', 2);
+                    while (j >= 0 && animating) {
+                        updatePIP('insertion', 3);
+                        Metrics.compares++; updateTelemetry();
+                        if (arr[j] <= key) break;
                         updateLogText(`Shifting ${arr[j]} to the right to make room for ${key}`);
                         arr[j + 1] = arr[j]; j--;
+                        Metrics.writes++; updateTelemetry();
+                        updatePIP('insertion', 4); updatePIP('insertion', 5);
                         drawSortBars(arr, [j + 1], [i], []); await DELAY(speedMs); setSteps(++sortSteps);
                     }
                     arr[j + 1] = key;
+                    Metrics.writes++; updateTelemetry();
+                    updatePIP('insertion', 6);
                     updateLogText(`Inserted ${key} at position ${j + 1}`);
                     drawSortBars(arr, [j + 1], [], []); await DELAY(speedMs / 2);
                 }
@@ -1643,16 +1743,26 @@
                     let left = a.slice(l, m + 1), right = a.slice(m + 1, r + 1), i = 0, j = 0, k = l;
                     while (i < left.length && j < right.length && animating) {
                         updateLogText(`Merging halves: comparing ${left[i]} and ${right[j]}`);
-                        drawSortBars(a, [k], [], []); await DELAY(speedMs); setSteps(++sortSteps);
+                        drawSortBars(a, [k], [], []); 
+                        Metrics.compares++; updateTelemetry(); 
+                        await DELAY(speedMs); setSteps(++sortSteps);
                         if (left[i] <= right[j]) a[k++] = left[i++]; else a[k++] = right[j++];
+                        Metrics.writes++; updateTelemetry();
                     }
-                    while (i < left.length) a[k++] = left[i++];
-                    while (j < right.length) a[k++] = right[j++];
+                    while (i < left.length) { a[k++] = left[i++]; Metrics.writes++; updateTelemetry(); }
+                    while (j < right.length) { a[k++] = right[j++]; Metrics.writes++; updateTelemetry(); }
+                    updatePIP('merge', 5);
                 }
                 async function mergeSort(a, l, r) {
+                    updatePIP('merge', 0);
                     if (l >= r || !animating) return;
+                    updatePIP('merge', 1);
                     let m = Math.floor((l + r) / 2);
-                    await mergeSort(a, l, m); await mergeSort(a, m + 1, r);
+                    updatePIP('merge', 2);
+                    await mergeSort(a, l, m); 
+                    updatePIP('merge', 3);
+                    await mergeSort(a, m + 1, r);
+                    updatePIP('merge', 4);
                     await merge(a, l, m, r);
                     drawSortBars(a, [], [], []); await DELAY(speedMs / 2);
                 }
@@ -1667,31 +1777,59 @@
                         const piv = [hi], comp = [j], high = [i >= lo ? i : -1].filter(x => x >= 0);
                         const barWrap = viz.querySelector('.bar-viz');
                         if (barWrap) { barWrap.querySelectorAll('.bar').forEach((b, idx) => { b.className = 'bar' + (piv.includes(idx) ? ' pivot' : '') + (comp.includes(idx) ? ' compare' : '') + (high.includes(idx) ? ' highlight' : ''); }); }
+                        
+                        Metrics.compares++; updateTelemetry();
                         await DELAY(speedMs); setSteps(++sortSteps);
-                        if (a[j] < pivot) { i++;[a[i], a[j]] = [a[j], a[i]]; updateLogText(`Swapping arr[${i}] and arr[${j}]`); }
+                        if (a[j] < pivot) { 
+                            i++; [a[i], a[j]] = [a[j], a[i]]; 
+                            Metrics.swaps++; Metrics.writes+=2; updateTelemetry();
+                            updateLogText(`Swapping arr[${i}] and arr[${j}]`); 
+                        }
                     }
                     [a[i + 1], a[hi]] = [a[hi], a[i + 1]];
+                    Metrics.swaps++; Metrics.writes+=2; updateTelemetry();
                     return i + 1;
                 }
                 async function quickSort(a, lo, hi) {
+                    updatePIP('quick', 0);
                     if (lo >= hi || !animating) return;
+                    updatePIP('quick', 1);
                     drawSortBars(a, [], [hi], []);
+                    updatePIP('quick', 2);
                     let p = await partition(a, lo, hi);
                     drawSortBars(a, [p], [], [p]); await DELAY(speedMs / 2);
-                    await quickSort(a, lo, p - 1); await quickSort(a, p + 1, hi);
+                    updatePIP('quick', 3);
+                    await quickSort(a, lo, p - 1); 
+                    updatePIP('quick', 4);
+                    await quickSort(a, p + 1, hi);
                 }
                 await quickSort(arr, 0, arr.length - 1);
                 drawSortBars(arr, [], [], arr.map((_, i) => i));
             } else if (sortAlgo === 'heap') {
                 async function heapify(a, n, i) {
+                    updatePIP('heap', 0); updatePIP('heap', 1);
                     let largest = i, l = 2 * i + 1, r = 2 * i + 2;
+                    Metrics.compares++; 
                     if (l < n && a[l] > a[largest]) largest = l;
+                    Metrics.compares++; updateTelemetry();
+                    updatePIP('heap', 2);
                     if (r < n && a[r] > a[largest]) largest = r;
-                    if (largest !== i) { updateLogText(`Heapify: swapping ${a[i]} ↔ ${a[largest]}`);[a[i], a[largest]] = [a[largest], a[i]]; drawSortBars(a, [i, largest], [], sorted.map(x => x)); await DELAY(speedMs); setSteps(++sortSteps); await heapify(a, n, largest); }
+                    updatePIP('heap', 3);
+                    if (largest !== i) { 
+                        updateLogText(`Heapify: swapping ${a[i]} ↔ ${a[largest]}`); 
+                        [a[i], a[largest]] = [a[largest], a[i]]; 
+                        Metrics.swaps++; Metrics.writes+=2; updateTelemetry();
+                        updatePIP('heap', 4);
+                        drawSortBars(a, [i, largest], [], sorted.map(x => x)); 
+                        await DELAY(speedMs); setSteps(++sortSteps); 
+                        updatePIP('heap', 5);
+                        await heapify(a, n, largest); 
+                    }
                 }
                 for (let i = Math.floor(arr.length / 2) - 1; i >= 0 && animating; i--) await heapify(arr, arr.length, i);
                 for (let i = arr.length - 1; i > 0 && animating; i--) {
                     [arr[0], arr[i]] = [arr[i], arr[0]]; sorted.push(i);
+                    Metrics.swaps++; Metrics.writes+=2; updateTelemetry();
                     updateLogText(`Extracted max=${arr[i]}, placed at index ${i}`);
                     drawSortBars(arr, [0], [], [...sorted]); await DELAY(speedMs); setSteps(++sortSteps);
                     await heapify(arr, i, 0);
@@ -1699,16 +1837,24 @@
                 drawSortBars(arr, [], [], arr.map((_, i) => i));
             } else if (sortAlgo === 'counting') {
                 const max = Math.max(...arr);
+                updatePIP('counting', 0);
                 const count = Array(max + 1).fill(0);
+                updatePIP('counting', 1);
                 for (let i = 0; i < arr.length && animating; i++) {
                     count[arr[i]]++;
+                    updatePIP('counting', 2);
                     updateLogText(`Counting: value ${arr[i]} → count[${arr[i]}] = ${count[arr[i]]}`);
                     drawSortBars(arr, [i], [], []); await DELAY(speedMs); setSteps(++sortSteps);
                 }
                 let idx = 0;
+                updatePIP('counting', 3);
+                updatePIP('counting', 4);
                 for (let v = 0; v <= max && animating; v++) {
                     for (let c = 0; c < count[v] && animating; c++) {
+                        updatePIP('counting', 5);
                         arr[idx] = v;
+                        Metrics.writes++; updateTelemetry();
+                        updatePIP('counting', 6);
                         updateLogText(`Placing value ${v} at index ${idx}`);
                         drawSortBars(arr, [idx], [], Array.from({ length: idx }, (_, i) => i));
                         await DELAY(speedMs); setSteps(++sortSteps); idx++;
@@ -1726,11 +1872,23 @@
         let searchArr = [1, 3, 5, 8, 12, 15, 19, 23, 28, 31, 36];
         let searchTarget = 19;
 
+        function setSearch(id) {
+            searchAlgo = id;
+            const grid = document.querySelector('.topic-grid');
+            if (grid) grid.classList.remove('expanded');
+            document.getElementById('search-title').textContent = id === 'linear' ? 'Linear Search' : 'Binary Search';
+            document.getElementById('search-desc').textContent = CONCEPT_DICT[id].keyConcept;
+            document.querySelectorAll('.topic-grid .topic-btn').forEach(b => b.classList.toggle('active', b.id === 'sbtn-' + id));
+            resetSearch();
+            updateLogText(`Mode changed: ${id === 'linear' ? 'Brute force linear scan' : 'Divide and conquer binary search'} activated.`);
+            updateConceptUI(id);
+        }
+
         function renderSearching() {
             document.getElementById('content').innerHTML = `
     <div class="topic-grid">
-      <div class="topic-btn active" id="btn-linear" onclick="setSearch('linear')"><div class="icon">🔍</div><div class="name">Linear Search</div><div class="complexity">O(n)</div></div>
-      <div class="topic-btn" id="btn-binary" onclick="setSearch('binary')"><div class="icon">🎯</div><div class="name">Binary Search</div><div class="complexity">O(log n)</div></div>
+      <div class="topic-btn active" id="sbtn-linear" onclick="setSearch('linear')"><div class="icon">🔍</div><div class="name">Linear Search</div><div class="complexity">O(n)</div></div>
+      <div class="topic-btn" id="sbtn-binary" onclick="setSearch('binary')"><div class="icon">🎯</div><div class="name">Binary Search</div><div class="complexity">O(log n)</div></div>
     </div>
     <div class="demo-area">
       <div class="demo-title" id="search-title">Linear Search</div>
@@ -1752,15 +1910,6 @@
         }
 
         let searchAlgo = 'linear';
-        function setSearch(a) {
-            searchAlgo = a;
-            document.getElementById('btn-linear').classList.toggle('active', a === 'linear');
-            document.getElementById('btn-binary').classList.toggle('active', a === 'binary');
-            const descs = { linear: 'Checks every element one by one from left to right sequentially.', binary: 'Divides the sorted array in half each step to narrow down the search range exponentially.' };
-            document.getElementById('search-title').textContent = a === 'linear' ? 'Linear Search' : 'Binary Search';
-            document.getElementById('search-desc').textContent = descs[a];
-            updateConceptUI(a);
-        }
 
         function drawSearchArr(arr, highlights, found) {
             const viz = document.getElementById('search-viz');
@@ -1780,28 +1929,39 @@
         async function runSearch() {
             if (animating) return;
             animating = true;
+            resetMetrics();
             const arr = searchArr, target = +document.getElementById('search-target').value;
 
             if (searchAlgo === 'linear') {
                 for (let i = 0; i < arr.length && animating; i++) {
+                    updatePIP('linear', 0);
+                    updatePIP('linear', 1);
                     updateLogText(`Evaluating index ${i}: Value ${arr[i]} ${arr[i] === target ? '== TARGET!' : '≠ ' + target}`);
                     drawSearchArr(arr, [i], []);
+                    Metrics.compares++; updateTelemetry();
                     await DELAY(speedMs);
-                    if (arr[i] === target) { drawSearchArr(arr, [], [i]); updateLogText(`✓ Success! Found ${target} at index ${i}.`); animating = false; return; }
+                    if (arr[i] === target) { updatePIP('linear', 2); drawSearchArr(arr, [], [i]); updateLogText(`✓ Success! Found ${target} at index ${i}.`); animating = false; return; }
                 }
+                updatePIP('linear', 3);
                 updateLogText(`✗ Search failed. ${target} does not exist in the array.`); animating = false;
             } else {
+                updatePIP('binary', 0);
                 let lo = 0, hi = arr.length - 1;
                 while (lo <= hi && animating) {
+                    updatePIP('binary', 1);
                     let mid = Math.floor((lo + hi) / 2);
+                    updatePIP('binary', 2);
                     updateLogText(`Range [${lo} - ${hi}], checking mid point index ${mid} → arr[mid] = ${arr[mid]}`);
                     drawSearchArr(arr, [mid], []);
+                    Metrics.compares++; updateTelemetry();
                     await DELAY(speedMs);
-                    if (arr[mid] === target) { drawSearchArr(arr, [], [mid]); updateLogText(`✓ Success! Found ${target} at index ${mid}.`); animating = false; return; }
-                    if (arr[mid] < target) { lo = mid + 1; updateLogText(`${arr[mid]} < ${target}, narrowing search to the right half.`); }
-                    else { hi = mid - 1; updateLogText(`${arr[mid]} > ${target}, narrowing search to the left half.`); }
+                    if (arr[mid] === target) { updatePIP('binary', 3); drawSearchArr(arr, [], [mid]); updateLogText(`✓ Success! Found ${target} at index ${mid}.`); animating = false; return; }
+                    Metrics.compares++; updateTelemetry();
+                    if (arr[mid] < target) { updatePIP('binary', 4); lo = mid + 1; updateLogText(`${arr[mid]} < ${target}, narrowing search to the right half.`); }
+                    else { updatePIP('binary', 5); hi = mid - 1; updateLogText(`${arr[mid]} > ${target}, narrowing search to the left half.`); }
                     await DELAY(speedMs / 2);
                 }
+                updatePIP('binary', 6);
                 updateLogText(`✗ Search failed. ${target} not found.`); animating = false;
             }
         }
@@ -1809,96 +1969,62 @@
         let dsData = [10, 20, 30, 40, 50];
         let dsQueue = [10, 20, 30];
         let linkedList = [5, 12, 8, 25, 3];
+        let dsMode = 'array';
 
         function renderDS() {
             document.getElementById('content').innerHTML = `
     <div class="topic-grid">
-      <div class="topic-btn active" onclick="setDS('array')"><div class="icon">📊</div><div class="name">Array</div><div class="complexity">Access: O(1)</div></div>
-      <div class="topic-btn" onclick="setDS('stack')"><div class="icon">📚</div><div class="name">Stack</div><div class="complexity">Push/Pop: O(1)</div></div>
-      <div class="topic-btn" onclick="setDS('queue')"><div class="icon">🚶</div><div class="name">Queue</div><div class="complexity">Enq/Deq: O(1)</div></div>
-      <div class="topic-btn" onclick="setDS('linked')"><div class="icon">🔗</div><div class="name">Linked List</div><div class="complexity">Insert: O(1)</div></div>
-      <div class="topic-btn" onclick="setDS('hash')"><div class="icon">#️⃣</div><div class="name">Hash Table</div><div class="complexity">Lookup: O(1) avg</div></div>
-      <div class="topic-btn" onclick="setDS('minheap')"><div class="icon">🏔️</div><div class="name">Min-Heap</div><div class="complexity">Extract: O(log n)</div></div>
-      <div class="topic-btn" onclick="setDS('trie')"><div class="icon">🌲</div><div class="name">Trie</div><div class="complexity">Search: O(m)</div></div>
+      <div class="topic-btn active" id="dbtn-array" onclick="setDS('array')"><div class="icon">📊</div><div class="name">Array</div><div class="complexity">Access: O(1)</div></div>
+      <div class="topic-btn" id="dbtn-stack" onclick="setDS('stack')"><div class="icon">📚</div><div class="name">Stack</div><div class="complexity">Push/Pop: O(1)</div></div>
+      <div class="topic-btn" id="dbtn-queue" onclick="setDS('queue')"><div class="icon">🚶</div><div class="name">Queue</div><div class="complexity">Enq/Deq: O(1)</div></div>
+      <div class="topic-btn" id="dbtn-linked" onclick="setDS('linked')"><div class="icon">🔗</div><div class="name">Linked List</div><div class="complexity">Insert: O(1)</div></div>
+      <div class="topic-btn" id="dbtn-hash" onclick="setDS('hash')"><div class="icon">#️⃣</div><div class="name">Hash Table</div><div class="complexity">Lookup: O(1) avg</div></div>
+      <div class="topic-btn" id="dbtn-minheap" onclick="setDS('minheap')"><div class="icon">🏔️</div><div class="name">Min-Heap</div><div class="complexity">Extract: O(log n)</div></div>
+      <div class="topic-btn" id="dbtn-trie" onclick="setDS('trie')"><div class="icon">🌲</div><div class="name">Trie</div><div class="complexity">Search: O(m)</div></div>
     </div>
-    <div class="demo-area" id="ds-demo"></div>`;
-            document.querySelectorAll('.topic-btn').forEach((b, i) => {
-                const types = ['array', 'stack', 'queue', 'linked', 'hash', 'minheap', 'trie'];
-                b.onclick = () => { document.querySelectorAll('.topic-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); setDS(types[i]); };
-            });
+    <div class="demo-area">
+        <div class="demo-title" id="ds-title">Static Array</div>
+        <div class="demo-desc" id="ds-desc">Contiguous memory block. O(1) direct access by index, O(n) dynamic insertion.</div>
+        <div class="viz-area" id="ds-viz"></div>
+        <div class="controls" id="ds-controls"></div>
+        <div class="log" id="ds-log">Arrays provide true O(1) random access via memory offset calculation.</div>
+    </div>`;
             setDS('array');
         }
 
-        function setDS(type) {
-            const demo = document.getElementById('ds-demo');
-            if (!demo) return;
-            if (type === 'array') {
-                dsData = [10, 20, 30, 40, 50];
-                demo.innerHTML = `<div class="demo-title">Static Array</div><div class="demo-desc">Contiguous memory block. O(1) direct access by index, O(n) dynamic insertion.</div>
-      <div class="viz-area" id="ds-viz"></div>
-      <div class="controls">
-        <button class="btn primary" onclick="dsArrayPush()">Push</button>
-        <button class="btn" onclick="dsArrayPop()">Pop</button>
-        <div style="display:flex;align-items:center;gap:6px;margin-left:8px;">
-          <input type="number" id="ds-idx" placeholder="idx" style="width:60px;padding:8px 12px;border-radius:8px;">
-          <button class="btn" onclick="dsArrayAccess()">Access[i]</button>
-        </div>
-      </div>
-      <div class="log" id="ds-log">Arrays provide true O(1) random access via memory offset calculation.</div>`;
-                drawDSArr(dsData);
-            } else if (type === 'stack') {
-                dsData = [10, 20, 30];
-                demo.innerHTML = `<div class="demo-title">Stack (LIFO)</div><div class="demo-desc">Last In, First Out. Elements are pushed and popped strictly from the top.</div>
-      <div class="viz-area" id="ds-viz" style="align-items:flex-end;"></div>
-      <div class="controls"><button class="btn primary" onclick="dsPush()">Push</button><button class="btn" onclick="dsPop()">Pop</button><button class="btn" onclick="dsPeek()">Peek</button></div>
-      <div class="log" id="ds-log">Stack: LIFO architecture — operations happen strictly at one end.</div>`;
-                drawStack(dsData);
-            } else if (type === 'queue') {
-                dsQueue = [10, 20, 30];
-                demo.innerHTML = `<div class="demo-title">Queue (FIFO)</div><div class="demo-desc">First In, First Out. Elements enter at the back and are processed from the front.</div>
-      <div class="viz-area" id="ds-viz"></div>
-      <div class="controls"><button class="btn primary" onclick="dsEnqueue()">Enqueue</button><button class="btn" onclick="dsDequeue()">Dequeue</button></div>
-      <div class="log" id="ds-log">Queue: FIFO architecture — ensuring order of arrival is preserved.</div>`;
-                drawQueue(dsQueue);
-            } else if (type === 'linked') {
-                linkedList = [5, 12, 8, 25, 3];
-                demo.innerHTML = `<div class="demo-title">Singly Linked List</div><div class="demo-desc">Nodes scattered in memory, connected sequentially via reference pointers.</div>
-      <div class="viz-area" id="ds-viz" style="flex-wrap:wrap;justify-content:flex-start;"></div>
-      <div class="controls"><button class="btn primary" onclick="llPrepend()">Prepend</button><button class="btn" onclick="llAppend()">Append</button><button class="btn" onclick="llRemoveHead()">Remove Head</button></div>
-      <div class="log" id="ds-log">Each node structure holds a data value and a pointer to the next memory address.</div>`;
-                drawLinked(linkedList);
-            } else if (type === 'hash') {
-                hashData = {};
-                demo.innerHTML = `<div class="demo-title">Hash Table (Map)</div><div class="demo-desc">Uses a deterministic hash function to map string keys to numerical storage indices.</div>
-      <div class="viz-area" id="ds-viz" style="flex-direction:column;align-items:flex-start;"></div>
-      <div class="controls">
-        <input id="hash-key" placeholder="Enter key..." style="width:120px;padding:8px 12px;border-radius:8px;">
-        <button class="btn primary" onclick="hashInsert()">Insert Key</button>
-        <button class="btn" onclick="hashLookup()">Lookup Key</button>
-      </div>
-      <div class="log" id="ds-log">Hash Function: ∑ (char codes) % table capacity.</div>`;
-                drawHashTable({});
-            } else if (type === 'minheap') {
-                heapArr = [2, 5, 8, 10, 14];
-                demo.innerHTML = `<div class="demo-title">Min-Heap (Priority Queue)</div><div class="demo-desc">Parent is always smaller than children. Smallest element is always at the root.</div>
-      <div class="viz-area" id="ds-viz" style="justify-content:center;"></div>
-      <div class="controls"><button class="btn primary" onclick="heapInsertRandom()">Insert Random</button><button class="btn" onclick="heapExtractMin()">Extract Min</button></div>
-      <div class="log" id="ds-log">Min-Heap ready. Insert or extract to see heapify in action.</div>`;
-                drawHeapTree(heapArr, []);
-            } else if (type === 'trie') {
-                trieRoot = { children: {}, isEnd: false };
-                ['cat', 'car', 'cap', 'can'].forEach(w => trieInsertWord(trieRoot, w));
-                demo.innerHTML = `<div class="demo-title">Trie (Prefix Tree)</div><div class="demo-desc">Each node represents one character. Words share common prefixes to save space.</div>
-      <div class="viz-area" id="ds-viz" style="justify-content:center;"></div>
-      <div class="controls">
-        <input id="trie-word" placeholder="Type word..." style="width:120px;padding:8px 12px;border-radius:8px;">
-        <button class="btn primary" onclick="trieInsertUI()">Insert Word</button>
-        <button class="btn" onclick="trieSearchUI()">Search Word</button>
-      </div>
-      <div class="log" id="ds-log">Trie loaded with: cat, car, cap, can. Try inserting or searching.</div>`;
-                drawTrieViz(trieRoot, []);
-            }
-            updateConceptUI(type);
+        function setDS(id) {
+            dsMode = id;
+            const grid = document.querySelector('.topic-grid');
+            if (grid) grid.classList.remove('expanded');
+            const configs = {
+                array: { title: 'Contiguous Array', desc: 'Elements indexed in sequential memory addresses.', controls: `
+                        <button class="btn primary" onclick="dsArrayPush()">Append</button>
+                        <button class="btn" onclick="dsArrayPop()">Pop (Last)</button>
+                        <div style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.3);padding:6px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.05);"><span style="font-size:10px;color:var(--muted);">IDX:</span><input type="number" id="ds-idx" value="2" min="0" max="6" style="width:40px;padding:4px;background:transparent;border:none;color:var(--text);font-family:var(--font-mono);outline:none;"></div>
+                        <button class="btn" onclick="dsArrayAccess()">Access</button>` },
+                stack: { title: 'Stack Structure', desc: 'Last-In First-Out (LIFO) protocol. Insertion/Removal only at the TOP.', controls: `<button class="btn primary" onclick="dsPush()">PUSH (Add)</button><button class="btn" onclick="dsPop()">POP (Remove)</button><button class="btn" onclick="dsPeek()">PEEK (Look)</button>` },
+                queue: { title: 'Linear Queue', desc: 'First-In First-Out (FIFO) protocol. Elements join at REAR, leave from FRONT.', controls: `<button class="btn primary" onclick="dsEnqueue()">ENQUEUE</button><button class="btn" onclick="dsDequeue()">DEQUEUE</button>` },
+                linked: { title: 'Linked List', desc: 'Non-contiguous nodes connected via memory pointers (Next reference).', controls: `<button class="btn primary" onclick="llPrepend()">Prepend</button><button class="btn" onclick="llAppend()">Append</button><button class="btn" onclick="llRemoveHead()">Remove Head</button>` },
+                minheap: { title: 'Binary Min-Heap', desc: 'Complete tree where each parent is ≤ its children. Efficient for min priority.', controls: `<button class="btn primary" onclick="heapInsertRandom()">Insert Value</button><button class="btn" onclick="heapExtractMin()">Extract Min</button>` },
+                hash: { title: 'Hash Table', desc: 'Key-value mapping using a hash function to resolve memory addresses.', controls: `<input type="text" id="hash-key" placeholder="Key" style="width:80px;padding:8px 12px;border-radius:8px;"><button class="btn primary" onclick="hashInsert()">Insert</button><button class="btn" onclick="hashLookup()">Lookup</button>` },
+                trie: { title: 'Trie (Prefix Tree)', desc: 'Specialized tree structure used for fast string retrieval and autocomplete suggestions.', controls: `<input type="text" id="trie-word" placeholder="word" style="width:70px;padding:8px 12px;border-radius:8px;"><button class="btn primary" onclick="trieInsertUI()">Insert</button><button class="btn" onclick="trieSearchUI()">Search</button>` }
+            };
+            const c = configs[id];
+            document.getElementById('ds-title').textContent = c.title;
+            document.getElementById('ds-desc').textContent = c.desc;
+            document.getElementById('ds-controls').innerHTML = c.controls;
+            document.querySelectorAll('.topic-grid .topic-btn').forEach(b => b.classList.toggle('active', b.id === 'dbtn-' + id));
+            
+            if (id === 'minheap') { drawHeapTree(heapArr, []); }
+            else if (id === 'hash') { drawHashTable(hashData); }
+            else if (id === 'trie') { drawTrieViz(trieRoot, []); }
+            else if (id === 'array') { drawDSArr(dsData); }
+            else if (id === 'stack') { drawStack(dsData); }
+            else if (id === 'queue') { drawQueue(dsQueue); }
+            else if (id === 'linked') { drawLinked(linkedList); }
+            
+            updateLogText(`${c.title} context initialized.`);
+            updateConceptUI(id);
         }
 
         let hashData = {};
@@ -2122,6 +2248,8 @@
         function setTree(mode) {
             treeMode = mode;
             animating = false;
+            const grid = document.querySelector('.topic-grid');
+            if (grid) grid.classList.remove('expanded');
             ['bst', 'bfs', 'dfs', 'avl'].forEach(m => { const b = document.getElementById('btn-' + m); if (b) b.classList.toggle('active', m === mode); });
             const configs = {
                 bst: { title: 'Binary Search Tree', desc: 'Left child < parent < right child. Extremely efficient for hierarchical data lookups.', btn1: 'Insert Node', btn2: 'Search Path' },
@@ -2136,7 +2264,7 @@
             document.getElementById('tree-btn2').textContent = c.btn2;
             updateLogText('Traversal mode changed. Press the run button.');
             drawTree(mode === 'avl' ? (avlRoot || { val: '—', left: null, right: null }) : bst, [], []);
-            updateConceptUI('tree-' + mode);
+            updateConceptUI('tree-' + treeMode);
         }
 
         function drawTree(root, highlighted = [], found = []) {
@@ -2369,11 +2497,20 @@
         }
 
         function setGraph(a) {
-            graphAlgo = a; animating = false;
+            graphAlgo = a;
+            const grid = document.querySelector('.topic-grid');
+            if (grid) grid.classList.remove('expanded');
             ['bfs', 'dfs', 'dijkstra', 'topo', 'kruskal'].forEach(m => { const b = document.getElementById('gbtn-' + m); if (b) b.classList.toggle('active', m === a); });
-            const descs = { bfs: 'Pings adjacent nodes radially outwards from a designated start point.', dfs: 'Navigates the topology edge deep into a chain before returning.', dijkstra: "Calculates the mathematical absolute shortest path vector spanning the network.", topo: 'Sequences node dependencies so all directed edges align forward strictly.', kruskal: 'Builds a Minimum Spanning Tree by greedily picking the shortest available edge that creates no cycle.' };
-            document.getElementById('graph-title').textContent = { bfs: 'Graph Traversal (BFS)', dfs: 'Graph Routing (DFS)', dijkstra: 'Dijkstra Pathfinding', topo: 'Topological Vector Sort', kruskal: "Kruskal's MST" }[a];
-            document.getElementById('graph-desc').textContent = descs[a];
+            const configs = {
+                bfs: { title: 'Graph Traversal (BFS)', desc: 'Pings adjacent nodes radially outwards from a designated start point.' },
+                dfs: { title: 'Graph Traversal (DFS)', desc: 'Probes as deep as possible into each branch before backtracking.' },
+                dijkstra: { title: "Dijkstra's Pathfinding", desc: "Calculates the absolute shortest path between nodes using physical edge weights." },
+                topo: { title: 'Topological Sort', desc: 'Generates a linear ordering based on directional dependencies (e.g. course prerequisites).' },
+                kruskal: { title: "Kruskal's MST", desc: 'Finds the Minimum Spanning Tree by linking the cheapest edges without forming cycles.' }
+            };
+            const c = configs[a];
+            document.getElementById('graph-title').textContent = c.title;
+            document.getElementById('graph-desc').textContent = c.desc;
             updateLogText('Algorithm deployed in memory. Awaiting trace command.');
             drawGraph([], []);
             updateConceptUI('graph-' + a);
@@ -2412,6 +2549,7 @@
         async function runGraph() {
             if (animating) return;
             animating = true;
+            resetMetrics();
             const visited = [], path = [];
             const target = document.getElementById('graph-target') ? document.getElementById('graph-target').value.toUpperCase().trim() : null;
             
@@ -2425,24 +2563,43 @@
             const rootNode = GNODES.includes('A') ? 'A' : GNODES[0];
 
             if (graphAlgo === 'bfs') {
+                updatePIP('bfs', 0);
                 const queue = [rootNode], seen = new Set([rootNode]);
+                updatePIP('bfs', 1);
                 while (queue.length && animating) {
+                    updatePIP('bfs', 2);
                     const cur = queue.shift(); visited.push(cur);
+                    updatePIP('bfs', 3);
                     drawGraph(visited, [cur], path); updateLogText(`Processing Node [${cur}]. Queue Load: {${queue.join(',')}} | Visited State: {${visited.join(',')}}`);
+                    Metrics.writes++; updateTelemetry();
                     await DELAY(speedMs);
                     if (target && cur === target) {
                         updateLogText(`✓ Target Node [${target}] reached! BFS search terminated successfully.`);
                         animating = false; return;
                     }
-                    for (const edge of ADJ[cur]) { const nb = edge.node; if (!seen.has(nb)) { seen.add(nb); queue.push(nb); path.push([cur, nb]); } }
+                    updatePIP('bfs', 4);
+                    for (const edge of ADJ[cur]) { 
+                        const nb = edge.node; 
+                        Metrics.compares++; updateTelemetry();
+                        updatePIP('bfs', 5);
+                        if (!seen.has(nb)) { 
+                            updatePIP('bfs', 6);
+                            seen.add(nb); queue.push(nb); path.push([cur, nb]); 
+                            Metrics.writes+=2; updateTelemetry();
+                            updatePIP('bfs', 7);
+                        } 
+                    }
                 }
                 updateLogText(`BFS trace successful. Layer mapping completed: ${visited.join(' → ')}`);
             } else if (graphAlgo === 'dfs') {
+                updatePIP('dfs', 0);
                 const seen = new Set();
                 let found = false;
                 async function dfs(n) { 
-                    if (!n || seen.has(n) || !animating || found) return; 
+                    if (!n || seen.has(n) || !animating || found) { updatePIP('dfs', 1); return; }
+                    updatePIP('dfs', 2);
                     seen.add(n); visited.push(n); 
+                    Metrics.writes++; updateTelemetry();
                     drawGraph(visited, [n], path); 
                     updateLogText(`Deep Dive processing Node [${n}]. Active Chain: {${visited.join(' → ')}}`); 
                     await DELAY(speedMs); 
@@ -2451,21 +2608,39 @@
                         updateLogText(`✓ Target Node [${target}] discovered in DFS recursion! Stopping trace.`);
                         return;
                     }
-                    for (const edge of ADJ[n]) { const nb = edge.node; if (!seen.has(nb)) { path.push([n, nb]); await dfs(nb); } } 
+                    updatePIP('dfs', 3);
+                    for (const edge of ADJ[n]) { 
+                        const nb = edge.node; 
+                        Metrics.compares++; updateTelemetry();
+                        if (!seen.has(nb)) { path.push([n, nb]); updatePIP('dfs', 4); await dfs(nb); } 
+                    } 
                 }
+                updatePIP('dfs', 5);
                 await dfs(rootNode); 
                 if (!found) updateLogText(`DFS trace successful. Deepest routing paths explored: ${visited.join(' → ')}`);
             } else if (graphAlgo === 'dijkstra') {
+                updatePIP('dijkstra', 0);
                 const dist = {}; GNODES.forEach(n => dist[n] = Infinity); dist[rootNode] = 0;
                 const unvis = new Set(GNODES);
+                updatePIP('dijkstra', 1);
                 while (unvis.size && animating) {
+                    updatePIP('dijkstra', 2);
                     let u = [...unvis].reduce((a, b) => dist[a] < dist[b] ? a : b);
+                    updatePIP('dijkstra', 3);
                     unvis.delete(u); visited.push(u);
+                    Metrics.writes++; updateTelemetry();
                     drawGraph(visited, [u], path); updateLogText(`Node [${u}] selected: calculated distance=${dist[u]}. Grid Vector: ${GNODES.map(n => `${n}:${dist[n] === Infinity ? '∞' : dist[n]}`).join(', ')}`);
                     await DELAY(speedMs);
+                    updatePIP('dijkstra', 4);
                     for (const edge of ADJ[u]) { 
                         const nb = edge.node, w = edge.w;
-                        if (dist[u] + w < dist[nb]) { dist[nb] = dist[u] + w; path.push([u, nb]); } 
+                        Metrics.compares++; updateTelemetry();
+                        updatePIP('dijkstra', 5);
+                        if (dist[u] + w < dist[nb]) { 
+                            dist[nb] = dist[u] + w; path.push([u, nb]); 
+                            Metrics.writes++; updateTelemetry();
+                            updatePIP('dijkstra', 6);
+                        } 
                     }
                 }
                 updateLogText(`Optimal routing resolved. Vectors from root (${rootNode}): ${GNODES.map(n => `[${n}]=${dist[n]}`).join(' | ')}`);
@@ -2512,11 +2687,11 @@
         function renderDP() {
             document.getElementById('content').innerHTML = `
     <div class="topic-grid">
-      <div class="topic-btn active" id="dp-fib" onclick="setDP('fib')"><div class="icon">🐇</div><div class="name">Fibonacci Math</div><div class="complexity">Time: O(n)</div></div>
-      <div class="topic-btn" id="dp-lis" onclick="setDP('lis')"><div class="icon">📈</div><div class="name">Longest Incr. Seq.</div><div class="complexity">Time: O(n²)</div></div>
-      <div class="topic-btn" id="dp-knapsack" onclick="setDP('knapsack')"><div class="icon">🎒</div><div class="name">0/1 Knapsack Grid</div><div class="complexity">Time: O(nW)</div></div>
-      <div class="topic-btn" id="dp-lcs" onclick="setDP('lcs')"><div class="icon">🧩</div><div class="name">LCS</div><div class="complexity">Time: O(m×n)</div></div>
-      <div class="topic-btn" id="dp-stairs" onclick="setDP('stairs')"><div class="icon">🪜</div><div class="name">Climb Stairs</div><div class="complexity">Time: O(n)</div></div>
+      <div class="topic-btn active" id="dpbtn-fib" onclick="setDP('fib')"><div class="icon">🐇</div><div class="name">Fibonacci Math</div><div class="complexity">Time: O(n)</div></div>
+      <div class="topic-btn" id="dpbtn-lis" onclick="setDP('lis')"><div class="icon">📈</div><div class="name">Longest Incr. Seq.</div><div class="complexity">Time: O(n²)</div></div>
+      <div class="topic-btn" id="dpbtn-knapsack" onclick="setDP('knapsack')"><div class="icon">🎒</div><div class="name">0/1 Knapsack Grid</div><div class="complexity">Time: O(nW)</div></div>
+      <div class="topic-btn" id="dpbtn-lcs" onclick="setDP('lcs')"><div class="icon">🧩</div><div class="name">LCS</div><div class="complexity">Time: O(m×n)</div></div>
+      <div class="topic-btn" id="dpbtn-stairs" onclick="setDP('stairs')"><div class="icon">🪜</div><div class="name">Climb Stairs</div><div class="complexity">Time: O(n)</div></div>
     </div>
     <div class="demo-area">
       <div class="demo-title" id="dp-title">Fibonacci sequence (Memoization)</div>
@@ -2534,21 +2709,30 @@
             updateConceptUI('dp-' + dpAlgo);
         }
 
-        function setDP(a) {
-            dpAlgo = a; animating = false;
-            ['fib', 'lis', 'knapsack', 'lcs', 'stairs'].forEach(m => { const b = document.getElementById('dp-' + m); if (b) b.classList.toggle('active', m === a); });
-            const titles = { fib: 'Fibonacci sequence (Memoization)', lis: 'Longest Increasing Subsequence', knapsack: '0/1 Knapsack Matrix Optimization', lcs: 'Longest Common Subsequence', stairs: 'Climbing Stairs' };
-            const descs = { fib: 'Caches calculated subproblem results in a 1D array to eliminate redundant recursive branches.', lis: 'Progressively identifies and logs lengths of strictly increasing array combinations.', knapsack: 'Constructs an optimization matrix to maximize inventory value under weight constraints.', lcs: 'Compares two strings character by character, building a 2D matrix to find the longest shared subsequence.', stairs: 'Each step you can climb 1 or 2 stairs. Count distinct ways to reach the top — a classic Fibonacci pattern.' };
-            document.getElementById('dp-title').textContent = titles[a];
-            document.getElementById('dp-desc').textContent = descs[a];
-            const viz = document.getElementById('dp-viz'); if (viz) viz.innerHTML = '';
-            updateLogText('Grid architecture switched. Press compile trace.');
-            if (a === 'fib') drawFibTable(Array(10).fill(null), -1);
-            else if (a === 'lis') drawLISTable([4, 2, 8, 5, 1, 9, 3, 6], Array(8).fill(1), -1);
-            else if (a === 'knapsack') drawKnapsackGrid(Array(4).fill(null).map(() => Array(7).fill(0)), -1, -1);
-            else if (a === 'lcs') drawLCSGrid('ABCDE', 'ACE', Array(6).fill(null).map(() => Array(4).fill(0)), -1, -1);
-            else if (a === 'stairs') drawStairsTable(Array(8).fill(null), -1);
-            updateConceptUI('dp-' + a);
+        function setDP(m) {
+            dpAlgo = m;
+            const grid = document.querySelector('.topic-grid');
+            if (grid) grid.classList.remove('expanded');
+            ['fib', 'lis', 'knapsack', 'lcs', 'stairs'].forEach(k => { const b = document.getElementById('dpbtn-' + k); if (b) b.classList.toggle('active', m === k); });
+            const configs = {
+                fib: { title: 'DP: Fibonacci Sequence (Memoization)', desc: 'Demonstrates overlapping subproblems saved in a contiguous buffer.' },
+                lis: { title: 'Longest Increasing Subsequence', desc: 'Builds a 1D DP table where each entry represents the best choice based on previous lookups.' },
+                knapsack: { title: '0/1 Knapsack (2D DP)', desc: 'Optimizes value selection across weight and item categories using subproblem comparison.' },
+                lcs: { title: 'Longest Common Subsequence', desc: 'Compares two strings to find their maximum alignment using a string-indexed matrix.' },
+                stairs: { title: 'Climbing Stairs', desc: 'Calculating distinct ways to reach a target step using sub-optimal paths (N-1 + N-2).' }
+            };
+            const c = configs[m];
+            document.getElementById('dp-title').textContent = c.title;
+            document.getElementById('dp-desc').textContent = c.desc;
+            updateLogText('Dynamic Programming environment reset. Waiting for grid allocation.');
+            
+            if (m === 'fib') drawStairsTable(Array(11).fill(null), -1);
+            else if (m === 'lis') drawLISTable([10, 22, 9, 33, 21], [1, 1, 1, 1, 1], -1);
+            else if (m === 'knapsack') drawKnapsackGrid(Array(5).fill(0).map(() => Array(7).fill(0)), -1, -1);
+            else if (m === 'lcs') drawLCSGrid("ABCDE", "ACE", Array(6).fill(0).map(() => Array(4).fill(0)), -1, -1);
+            else if (m === 'stairs') drawStairsTable(Array(11).fill(null), -1);
+
+            updateConceptUI('dp-' + m);
         }
 
         function drawFibTable(dp, cur) {
@@ -2709,10 +2893,21 @@
 
         async function runDP() {
             if (animating) return; animating = true;
+            resetMetrics();
             if (dpAlgo === 'fib') {
+                updatePIP('fib', 0);
                 const dp = Array(10).fill(null); dp[0] = 0; dp[1] = 1;
+                Metrics.writes += 2; updateTelemetry();
                 drawFibTable(dp, 1); await DELAY(speedMs);
-                for (let i = 2; i < 10 && animating; i++) { dp[i] = dp[i - 1] + dp[i - 2]; updateLogText(`Engine computing index ${i} => F(${i - 1})[${dp[i - 1]}] + F(${i - 2})[${dp[i - 2]}] = ${dp[i]}`); drawFibTable(dp, i); await DELAY(speedMs); }
+                for (let i = 2; i < 10 && animating; i++) { 
+                    updatePIP('fib', 1);
+                    dp[i] = dp[i - 1] + dp[i - 2]; 
+                    Metrics.writes++; updateTelemetry();
+                    updatePIP('fib', 2);
+                    updateLogText(`Engine computing index ${i} => F(${i - 1})[${dp[i - 1]}] + F(${i - 2})[${dp[i - 2]}] = ${dp[i]}`); 
+                    drawFibTable(dp, i); await DELAY(speedMs); 
+                }
+                updatePIP('fib', 3);
                 updateLogText(`Compilation completed. Final sequence vector generated.`);
             } else if (dpAlgo === 'lis') {
                 const arr = [4, 2, 8, 5, 1, 9, 3, 6], dp = Array(8).fill(1);
@@ -2721,7 +2916,24 @@
             } else if (dpAlgo === 'knapsack') {
                 const W = [0, 2, 3, 4], V = [0, 3, 4, 5], cap = 6;
                 const grid = Array(4).fill(null).map(() => Array(7).fill(0));
-                for (let i = 1; i <= 3 && animating; i++) { for (let w = 0; w <= cap && animating; w++) { if (W[i] <= w) grid[i][w] = Math.max(grid[i - 1][w], V[i] + grid[i - 1][w - W[i]]); else grid[i][w] = grid[i - 1][w]; updateLogText(`Analyzing Entity ${i} (W=${W[i]},V=${V[i]}): Matrix slot DP[${i}][${w}] assigned optimized value ${grid[i][w]}`); drawKnapsackGrid(grid, i, w); await DELAY(speedMs / 2); } }
+                for (let i = 1; i <= 3 && animating; i++) { 
+                    updatePIP('knapsack', 0);
+                    for (let w = 0; w <= cap && animating; w++) { 
+                        updatePIP('knapsack', 1); updatePIP('knapsack', 2);
+                        Metrics.compares++; updateTelemetry();
+                        if (W[i] <= w) {
+                            grid[i][w] = Math.max(grid[i - 1][w], V[i] + grid[i - 1][w - W[i]]);
+                            Metrics.writes++; updateTelemetry();
+                            updatePIP('knapsack', 3);
+                        } else {
+                            grid[i][w] = grid[i - 1][w];
+                            Metrics.writes++; updateTelemetry();
+                            updatePIP('knapsack', 4); updatePIP('knapsack', 5);
+                        }
+                        updateLogText(`Analyzing Entity ${i} (W=${W[i]},V=${V[i]}): Matrix slot DP[${i}][${w}] assigned optimized value ${grid[i][w]}`); 
+                        drawKnapsackGrid(grid, i, w); await DELAY(speedMs / 2); 
+                    } 
+                }
                 updateLogText(`Matrix resolved. Absolute maximum theoretical value = ${grid[3][6]} under capacity limit ${cap}.`);
             } else if (dpAlgo === 'lcs') {
                 const s1 = 'ABCDE', s2 = 'ACE';
@@ -2785,33 +2997,34 @@
             setPattern(patAlgo);
         }
 
-        function setPattern(a) {
-            patAlgo = a; animating = false;
-            const input = document.getElementById('pat-val');
-            if (input) {
-              if (a === 'twopointers') input.value = 72;
-              else if (a === 'sliding') input.value = 3;
-              else if (a === 'greedy') input.value = 87;
-              else input.value = 0;
-            }
-            ['twopointers', 'sliding', 'backtrack', 'greedy', 'hanoi', 'prefix', 'fastslow'].forEach(m => { const b = document.getElementById('pat-' + m); if (b) b.classList.toggle('active', m === a); });
-            const titles = { twopointers: 'Two Pointers (Target Sum)', sliding: 'Sliding Window (Max Sum K=3)', backtrack: 'Backtracking (N-Queens 4x4)', greedy: 'Greedy Algorithm (Coin Change)', hanoi: 'Tower of Hanoi (Recursion)', prefix: 'Prefix Sum Array', fastslow: 'Fast & Slow Pointers (Cycle Detection)' };
-            const descs = { twopointers: 'L and R pointers move towards each other to find elements summing to target.', sliding: 'Maintains a fixed-size window and slides it across the array to find max sum.', backtrack: 'Explores all possibilities by placing queens, backtracking if a conflict is found.', greedy: 'Picks the largest possible denomination repeatedly to make change.', hanoi: 'Move N disks from peg A to C using B as auxiliary. Each recursive call moves one disk at a time.', prefix: 'Build a running total array so any subarray sum can be computed in O(1) via prefix[j] - prefix[i].', fastslow: 'Slow pointer moves 1 step, fast moves 2. If they meet, a cycle exists in the linked list.' };
-            document.getElementById('pat-title').textContent = titles[a];
-            document.getElementById('pat-desc').textContent = descs[a];
-            updateLogText('Grid architecture switched for pattern. Press execute trace.');
+        function setPattern(m) {
+            patAlgo = m;
+            const grid = document.querySelector('.topic-grid');
+            if (grid) grid.classList.remove('expanded');
+            ['twopointers', 'sliding', 'backtrack', 'greedy', 'hanoi', 'prefix', 'fastslow'].forEach(k => { const b = document.getElementById('pat-' + k); if (b) b.classList.toggle('active', m === k); });
+            const configs = {
+                twopointers: { title: 'Pattern: Two Pointers', desc: 'Uses two markers to process array items efficiently, often narrowing down a search space.' },
+                sliding: { title: 'Pattern: Sliding Window', desc: 'Maintains a sub-segment of the array to calculate local properties as it moves forward.' },
+                backtrack: { title: 'Pattern: N-Queens (Backtracking)', desc: 'Systematically explores solutions by placing items and undoing choices if they fail.' },
+                greedy: { title: 'Pattern: Coin Change (Greedy)', desc: 'Always selects the largest possible denomination to reach the target amount quickly.' },
+                hanoi: { title: 'Pattern: Tower of Hanoi', desc: 'Recursive strategy for moving n disks between 3 pegs with strict hierarchy rules.' },
+                prefix: { title: 'Pattern: Prefix Sums', desc: 'Pre-computes running totals to allow constant-time O(1) range sum queries.' },
+                fastslow: { title: 'Pattern: Fast & Slow Pointers', desc: "Move pointers at different speeds (Tortoise & Hare) to detect cycles or find middle elements." }
+            };
+            const c = configs[m];
+            document.getElementById('pat-title').textContent = c.title;
+            document.getElementById('pat-desc').textContent = c.desc;
+            updateLogText('Algorithmic pattern assigned. Buffer data cleared.');
+            
+            if (m === 'twopointers') drawPatternArr([2, 5, 8, 12, 16, 23, 38, 56, 72, 91], 0, 9);
+            else if (m === 'sliding') drawPatternArr([4, 2, 1, 7, 8, 1, 2, 8, 1, 0], 0, 2);
+            else if (m === 'backtrack') drawNQueensGrid([], -1, -1);
+            else if (m === 'greedy') drawCoins(87, { 25: 0, 10: 0, 5: 0, 1: 0 }, [25, 10, 5, 1]);
+            else if (m === 'hanoi') drawHanoi({ A: [3, 2, 1], B: [], C: [] });
+            else if (m === 'prefix') drawPrefixSum([2, 4, 1, 3, 5, 2, 1], Array(7).fill(null), -1);
+            else if (m === 'fastslow') drawFastSlow([1, 3, 5, 7, 9, 11, 13, 5], 0, 0);
 
-            const viz = document.getElementById('pat-viz');
-            if (viz) viz.innerHTML = '';
-
-            if (a === 'twopointers') drawPatternArr([2, 5, 8, 12, 16, 23, 38, 56, 72, 91], 0, 9);
-            else if (a === 'sliding') drawPatternArr([4, 2, 1, 7, 8, 1, 2, 8, 1, 0], 0, 2, [], true);
-            else if (a === 'backtrack') drawNQueensGrid([], -1, -1);
-            else if (a === 'greedy') drawCoins(87, {}, [25, 10, 5, 1]);
-            else if (a === 'hanoi') drawHanoi({ A: [3, 2, 1], B: [], C: [] });
-            else if (a === 'prefix') drawPrefixSum([2, 4, 1, 3, 5, 2, 1], [], -1);
-            else if (a === 'fastslow') drawFastSlow([1, 3, 5, 7, 9, 11, 13, 5], -1, -1);
-            updateConceptUI(a);
+            updateConceptUI(m);
         }
 
         function drawPatternArr(arr, L, R, foundIndices = [], isWindow = false) {
@@ -2881,24 +3094,34 @@
 
         async function runPattern() {
             if (animating) return; animating = true;
+            resetMetrics();
             const target = +document.getElementById('pat-val').value;
             if (patAlgo === 'twopointers') {
+                updatePIP('twopointers', 0);
                 const arr = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91];
                 let L = 0, R = arr.length - 1;
+                updatePIP('twopointers', 1);
                 updateLogText(`Target Sum = ${target}. Starting Two Pointers.`);
                 while (L < R && animating) {
                     drawPatternArr(arr, L, R);
+                    updatePIP('twopointers', 2);
                     let sum = arr[L] + arr[R];
                     updateLogText(`Checking L(${arr[L]}) + R(${arr[R]}) = ${sum}`);
+                    Metrics.compares++; updateTelemetry();
                     await DELAY(speedMs);
                     if (sum === target) {
+                        updatePIP('twopointers', 3);
                         drawPatternArr(arr, L, R, [L, R]);
                         updateLogText(`✓ Found target ${target} at indices ${L} and ${R}!`);
                         animating = false; return;
                     } else if (sum < target) {
+                        updatePIP('twopointers', 4);
+                        Metrics.compares++; updateTelemetry();
                         updateLogText(`${sum} < ${target}. Moving Left pointer +1.`);
                         L++;
                     } else {
+                        updatePIP('twopointers', 5);
+                        Metrics.compares++; updateTelemetry();
                         updateLogText(`${sum} > ${target}. Moving Right pointer -1.`);
                         R--;
                     }
@@ -2906,19 +3129,26 @@
                 }
                 if (L >= R) updateLogText(`✗ Search failed. Target ${target} not found.`);
             } else if (patAlgo === 'sliding') {
+                updatePIP('sliding', 0);
                 const arr = [4, 2, 1, 7, 8, 1, 2, 8, 1, 0];
                 const K = target || 3;
                 let maxSum = 0, currentSum = 0;
                 let bestL = 0;
                 if (K > arr.length) { updateLogText("Error: Window size K exceeds array length."); animating = false; return; }
-                for (let i = 0; i < K; i++) currentSum += arr[i];
+                for (let i = 0; i < K; i++) { currentSum += arr[i]; Metrics.writes++; updateTelemetry(); }
+                updatePIP('sliding', 1);
                 maxSum = currentSum;
+                updatePIP('sliding', 2);
                 updateLogText(`Initial window [0-${K - 1}] sum = ${currentSum}`);
                 drawPatternArr(arr, 0, K - 1, [], true);
                 await DELAY(speedMs * 1.5);
 
                 for (let i = K; i < arr.length && animating; i++) {
+                    updatePIP('sliding', 3);
                     currentSum = currentSum - arr[i - K] + arr[i];
+                    Metrics.writes++; updateTelemetry();
+                    updatePIP('sliding', 4);
+                    Metrics.compares++; updateTelemetry();
                     if (currentSum > maxSum) {
                         maxSum = currentSum;
                         bestL = i - K + 1;
@@ -2927,6 +3157,7 @@
                     updateLogText(`Slid to [${i - K + 1} to ${i}]. -${arr[i - K]} +${arr[i]} = Sum: ${currentSum}. Max: ${maxSum}`);
                     await DELAY(speedMs * 1.5);
                 }
+                updatePIP('sliding', 5);
                 drawPatternArr(arr, bestL, bestL + K - 1, Array.from({ length: K }, (_, i) => bestL + i), true);
                 updateLogText(`✓ Completed. Maximum sum of size ${K} is ${maxSum}.`);
             } else if (patAlgo === 'backtrack') {
@@ -3125,9 +3356,30 @@
         `;
         document.body.appendChild(pipWindow);
         let isPipDragging = false, pipX = 0, pipY = 0;
-        pipWindow.onmousedown = (e) => { isPipDragging = true; pipX = e.clientX - pipWindow.offsetLeft; pipY = e.clientY - pipWindow.offsetTop; };
-        window.onmouseup = () => isPipDragging = false;
-        window.onmousemove = (e) => { if(isPipDragging) { pipWindow.style.left = (e.clientX - pipX)+'px'; pipWindow.style.top = (e.clientY - pipY)+'px'; pipWindow.style.bottom='auto'; pipWindow.style.right='auto'; } };
+        const dragStart = (e) => {
+            isPipDragging = true;
+            const ev = e.type.includes('touch') ? e.touches[0] : e;
+            pipX = ev.clientX - pipWindow.offsetLeft;
+            pipY = ev.clientY - pipWindow.offsetTop;
+        };
+        const dragMove = (e) => {
+            if (!isPipDragging) return;
+            const ev = e.type.includes('touch') ? e.touches[0] : e;
+            pipWindow.style.left = (ev.clientX - pipX) + 'px';
+            pipWindow.style.top = (ev.clientY - pipY) + 'px';
+            pipWindow.style.bottom = 'auto';
+            pipWindow.style.right = 'auto';
+            if (e.type === 'touchmove' && e.cancelable) e.preventDefault();
+        };
+        const dragEnd = () => isPipDragging = false;
+
+        pipWindow.onmousedown = dragStart;
+        window.onmousemove = dragMove;
+        window.onmouseup = dragEnd;
+
+        pipWindow.addEventListener('touchstart', dragStart, {passive: true});
+        window.addEventListener('touchmove', dragMove, {passive: false});
+        window.addEventListener('touchend', dragEnd);
 
         const PIP_CODES = {
             'bubble': "for i in range(len(arr)):\n  for j in range(len(arr)-i-1):\n    if arr[j] > arr[j+1]:\n      arr[j], arr[j+1] = arr[j+1], arr[j]",
@@ -3136,7 +3388,16 @@
             'merge': "def mergeSort(arr, l, r):\n  if l < r:\n    m = (l + r) // 2\n    mergeSort(arr, l, m)\n    mergeSort(arr, m + 1, r)\n    merge(arr, l, m, r)",
             'quick': "def quicksort(arr, lo, hi):\n  if lo < hi:\n    pi = partition(arr, lo, hi)\n    quicksort(arr, lo, pi-1)\n    quicksort(arr, pi+1, hi)",
             'heap': "def heapify(arr, n, i):\n  largest = i\n  if l < n and arr[l] > arr[largest]:...\n  if largest != i:\n    arr[i], arr[largest] = arr[largest], arr[i]\n    heapify(arr, n, largest)",
-            'counting': "count = [0] * (max(arr) + 1)\nfor x in arr:\n  count[x] += 1\nidx = 0\nfor i, c in enumerate(count):\n  while c > 0:\n    arr[idx] = i; idx += 1; c -= 1"
+            'counting': "count = [0] * (max(arr) + 1)\nfor x in arr:\n  count[x] += 1\nidx = 0\nfor i, c in enumerate(count):\n  while c > 0:\n    arr[idx] = i; idx += 1; c -= 1",
+            'linear': "for i in range(len(arr)):\n  if arr[i] == target:\n    return i\nreturn -1",
+            'binary': "lo, hi = 0, len(arr)-1\nwhile lo <= hi:\n  mid = (lo + hi) // 2\n  if arr[mid] == target: return mid\n  elif arr[mid] < target: lo = mid + 1\n  else: hi = mid - 1\nreturn -1",
+            'bfs': "queue = [start_node]\nvisited.add(start_node)\nwhile queue:\n  curr = queue.pop(0)\n  for neighbor in graph[curr]:\n    if neighbor not in visited:\n      visited.add(neighbor)\n      queue.append(neighbor)",
+            'dfs': "def dfs(node):\n  if node in visited: return\n  visited.add(node)\n  for neighbor in graph[node]:\n    dfs(neighbor)\ndfs(start_node)",
+            'dijkstra': "dist[start] = 0\nwhile unvisited:\n  u = get_min_dist_node(unvisited)\n  unvisited.remove(u)\n  for v, weight in graph[u]:\n    if dist[u] + weight < dist[v]:\n      dist[v] = dist[u] + weight",
+            'fib': "dp[0] = 0; dp[1] = 1\nfor i in range(2, n+1):\n  dp[i] = dp[i-1] + dp[i-2]\nreturn dp[n]",
+            'knapsack': "for i in range(1, items+1):\n  for w in range(capacity+1):\n    if weight[i] <= w:\n      dp[i][w] = max(dp[i-1][w], val[i] + dp[i-1][w-weight[i]])\n    else:\n      dp[i][w] = dp[i-1][w]",
+            'twopointers': "L, R = 0, len(arr)-1\nwhile L < R:\n  curr_sum = arr[L] + arr[R]\n  if curr_sum == target: return [L, R]\n  elif curr_sum < target: L += 1\n  else: R -= 1",
+            'sliding': "for i in range(k): window_sum += arr[i]\nmax_sum = window_sum\nfor i in range(k, len(arr)):\n  window_sum += arr[i] - arr[i-k]\n  max_sum = max(max_sum, window_sum)\nreturn max_sum"
         };
         function updatePIP(algo, activeLine) {
             if (!PIP_CODES[algo]) { pipWindow.style.display = 'none'; return; }
@@ -3268,9 +3529,13 @@
           <div style="margin-bottom:15px; font-family:var(--font-mono); color:var(--muted);">Elements (N): <input type="number" id="stress-n" value="10000" max="50000" style="background:#1b163d; color:#fff; border:1px solid var(--accent); padding:5px 10px; border-radius:5px; width:80px; outline:none;"></div>
           <button class="btn primary" onclick="runStressTest()">🚀 Run Benchmark</button>
       </div>
-      <div class="viz-area" style="min-height:250px; display:flex; align-items:flex-end; justify-content:space-around; padding:20px; gap:20px; box-shadow:none; border:none; background:transparent;" id="stress-viz">
-         <div id="stress-bar-bubble" style="width:100%; max-width:200px; background:var(--accent3); height:0px; transition:height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); border-radius:10px 10px 0 0; position:relative;"><span style="position:absolute; top:-30px; left:50%; transform:translateX(-50%); font-family:var(--font-mono); font-size:14px; font-weight:800;">O(N²)</span></div>
-         <div id="stress-bar-quick" style="width:100%; max-width:200px; background:var(--accent); height:0px; transition:height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); border-radius:10px 10px 0 0; position:relative;"><span style="position:absolute; top:-30px; left:50%; transform:translateX(-50%); font-family:var(--font-mono); font-size:14px; font-weight:800;">O(N logN)</span></div>
+      <div class="viz-area" style="min-height:320px; display:flex; align-items:flex-end; justify-content:space-around; padding:40px 20px 20px; gap:10px; box-shadow:none; border:none; background:transparent;" id="stress-viz">
+         <div id="stress-bar-bubble" style="width:100%; max-width:180px; background:var(--accent3); height:0px; transition:height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); border-radius:10px 10px 0 0; position:relative;">
+            <span style="position:absolute; top:-45px; left:50%; transform:translateX(-50%); font-family:var(--font-mono); font-size:13px; font-weight:800; white-space:nowrap; background:rgba(0,0,0,0.4); padding:4px 8px; border-radius:6px; color:var(--accent3);">O(N²)</span>
+         </div>
+         <div id="stress-bar-quick" style="width:100%; max-width:180px; background:var(--accent); height:0px; transition:height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); border-radius:10px 10px 0 0; position:relative;">
+            <span style="position:absolute; top:-45px; left:50%; transform:translateX(-50%); font-family:var(--font-mono); font-size:13px; font-weight:800; white-space:nowrap; background:rgba(0,0,0,0.4); padding:4px 8px; border-radius:6px; color:var(--accent);">O(N logN)</span>
+         </div>
       </div>
       <div class="log" id="stress-log">Warning: High N values (>25k) with Bubble Sort will visibly hang the Main Thread.</div>
     </div>`;
@@ -3317,10 +3582,16 @@
             
             const maxTime = Math.max(bubbleTime, quickTime, 1);
             document.getElementById('stress-bar-bubble').style.height = `${Math.max(5, (bubbleTime / maxTime) * 200)}px`;
-            document.getElementById('stress-bar-bubble').innerHTML = `<span style="position:absolute; top:-30px; left:50%; transform:translateX(-50%); font-family:var(--font-mono); font-size:14px; font-weight:800; color:var(--accent3);">O(N²)</span><span style="position:absolute; bottom:15px; left:50%; transform:translateX(-50%); font-family:var(--font-mono); font-size:14px; color:#fff; font-weight:800;">${bubbleTime}ms</span>`;
+            document.getElementById('stress-bar-bubble').innerHTML = `
+                <span style="position:absolute; top:-65px; left:50%; transform:translateX(-50%); font-family:var(--font-mono); font-size:12px; font-weight:800; color:var(--accent3); background:rgba(0,0,0,0.4); padding:4px 8px; border-radius:6px; white-space:nowrap;">O(N²)</span>
+                <span style="position:absolute; top:-35px; left:50%; transform:translateX(-50%); font-family:var(--font-mono); font-size:12px; color:#fff; font-weight:800; background:rgba(255,255,255,0.1); padding:4px 8px; border-radius:6px; white-space:nowrap;">${bubbleTime}ms</span>
+            `;
             
             document.getElementById('stress-bar-quick').style.height = `${Math.max(5, (quickTime / maxTime) * 200)}px`;
-            document.getElementById('stress-bar-quick').innerHTML = `<span style="position:absolute; top:-30px; left:50%; transform:translateX(-50%); font-family:var(--font-mono); font-size:14px; font-weight:800; color:var(--accent);">O(N logN)</span><span style="position:absolute; bottom:15px; left:50%; transform:translateX(-50%); font-family:var(--font-mono); font-size:14px; color:#fff; font-weight:800;">${quickTime}ms</span>`;
+            document.getElementById('stress-bar-quick').innerHTML = `
+                <span style="position:absolute; top:-65px; left:50%; transform:translateX(-50%); font-family:var(--font-mono); font-size:12px; font-weight:800; color:var(--accent); background:rgba(0,0,0,0.4); padding:4px 8px; border-radius:6px; white-space:nowrap;">O(N logN)</span>
+                <span style="position:absolute; top:-35px; left:50%; transform:translateX(-50%); font-family:var(--font-mono); font-size:12px; color:#fff; font-weight:800; background:rgba(255,255,255,0.1); padding:4px 8px; border-radius:6px; white-space:nowrap;">${quickTime}ms</span>
+            `;
 
             btn.innerHTML = '🚀 Run Benchmark'; btn.style.pointerEvents = 'auto';
         }
@@ -3390,4 +3661,5 @@
         renderSorting();
     </script>
 </body>
+
 </html>
